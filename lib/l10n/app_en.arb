@@ -1,0 +1,118 @@
+{
+  "dashboardOverviewTitle": "Overview",
+  "dashboardSubtitle": "Track your factory sales and collections",
+
+  "dashboardCustomers": "Customers",
+  "dashboardProducts": "Products",
+  "dashboardInvoices": "Invoices",
+  "dashboardOutstanding": "Outstanding",
+
+  "dashboardCollectionsSnapshot": "Collections Snapshot",
+  "dashboardRevenue": "Revenue",
+  "dashboardCollected": "Collected",
+  "dashboardOpenInvoices": "Open Invoices",
+
+  "dashboardQuickActions": "Quick Actions",
+  "dashboardRecentInvoices": "Recent Invoices",
+  "dashboardViewAll": "View All",
+
+  "dashboardNoInvoicesTitle": "No invoices yet",
+  "dashboardNoInvoicesSubtitle": "Create your first invoice to start tracking sales and collections.",
+  "dashboardGoToInvoices": "Go to Invoices",
+
+  "dashboardTopOutstandingCustomers": "Top Outstanding Customers",
+  "dashboardNoOutstandingTitle": "No outstanding balances",
+  "dashboardNoOutstandingSubtitle": "Great job. All customers are fully settled right now.",
+
+  "invoiceStatusPaid": "Paid",
+  "invoiceStatusPartial": "Partial",
+  "invoiceStatusCancelled": "Cancelled",
+  "invoiceStatusDraft": "Draft",
+  "invoiceStatusUnpaid": "Unpaid",
+
+  "dashboardInvoiceNumber": "Invoice #{ref}",
+  "@dashboardInvoiceNumber": {
+    "placeholders": {
+      "ref": {}
+    }
+  },
+
+  "dashboardRemainingAmount": "Remaining: ${amount}",
+  "@dashboardRemainingAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+    "productsTitle": "Products",
+    "productsSearchHint": "Search products",
+    "productsTotalProducts": "Total Products",
+    "productsSavedLocally": "Saved locally",
+    "productsAddProduct": "Add Product",
+    "productsAllProducts": "All Products",
+    "productsEmptyTitle": "No products yet",
+    "productsEmptySubtitle": "Add your first product to start building invoices and tracking stock.",
+  
+    "productsItemCount": "{count, plural, =0{0 items} =1{1 item} other{{count} items}}",
+    "@productsItemCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+  
+    "productCreatedMessage": "{name} created",
+    "@productCreatedMessage": {
+      "placeholders": {
+        "name": {}
+      }
+    },
+  
+    "productUpdatedMessage": "{name} updated",
+    "@productUpdatedMessage": {
+      "placeholders": {
+        "name": {}
+      }
+    },
+  
+    "productDeletedMessage": "{name} deleted",
+    "@productDeletedMessage": {
+      "placeholders": {
+        "name": {}
+      }
+    },
+  
+    "productAddTitle": "Add Product",
+    "productEditTitle": "Edit Product",
+    "productDialogSubtitle": "Enter the product details below.",
+    "productDetailsTitle": "Product Details",
+    "productDetailsSubtitle": "Add a fixed-price product for invoices and customer orders.",
+    "productNameLabel": "Product Name",
+    "productNameHint": "Enter product name",
+    "productPriceLabel": "Price",
+    "productPriceHint": "Enter fixed price",
+    "productUsageInfo": "This product will be available later in invoice creation and customer billing.",
+    "productSaveChanges": "Save Changes",
+    "productCreateButton": "Create Product",
+  
+    "productNameRequired": "Product name is required",
+    "productNameTooShort": "Product name is too short",
+    "productPriceRequired": "Price is required",
+    "productPriceInvalid": "Enter a valid price",
+    "productPricePositive": "Price must be greater than 0",
+  
+    "deleteProductTitle": "Delete Product",
+    "deleteProductMessage": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+    "@deleteProductMessage": {
+      "placeholders": {
+        "name": {}
+      }
+    },
+  
+    "commonCancel": "Cancel",
+    "commonDelete": "Delete",
+    "commonEdit": "Edit",
+  
+    "productFixedPrice": "Fixed price"
+  
+}

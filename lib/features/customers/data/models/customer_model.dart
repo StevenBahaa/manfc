@@ -1,0 +1,37 @@
+import '../../domain/entities/customer_entity.dart';
+
+class CustomerModel extends CustomerEntity {
+  const CustomerModel({
+    required super.id,
+    required super.name,
+    required super.phone,
+    required super.createdAt,
+  });
+
+  factory CustomerModel.fromEntity(CustomerEntity entity) {
+    return CustomerModel(
+      id: entity.id,
+      name: entity.name,
+      phone: entity.phone,
+      createdAt: entity.createdAt,
+    );
+  }
+
+  factory CustomerModel.fromMap(Map<String, dynamic> map) {
+    return CustomerModel(
+      id: map['id'] as String,
+      name: map['name'] as String,
+      phone: map['phone'] as String,
+      createdAt: DateTime.parse(map['created_at'] as String),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'phone': phone,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+}

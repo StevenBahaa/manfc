@@ -1,0 +1,39 @@
+abstract final class InvoiceStatus {
+  static const String draft = 'draft';
+  static const String unpaid = 'unpaid';
+  static const String partiallyPaid = 'partially_paid';
+  static const String paid = 'paid';
+  static const String cancelled = 'cancelled';
+
+  static const List<String> editableStatuses = [draft, unpaid, cancelled];
+
+  static String computeFromAmounts({
+    required double totalAmount,
+    required double paidAmount,
+    required String fallbackStatus,
+  }) {
+    if (fallbackStatus == cancelled) return cancelled;
+    if (fallbackStatus == draft) return draft;
+
+    if (paidAmount <= 0) return unpaid;
+    if (paidAmount >= totalAmount) return paid;
+    return partiallyPaid;
+  }
+
+  static String label(String status) {
+    switch (status) {
+      case draft:
+        return 'Draft';
+      case unpaid:
+        return 'Unpaid';
+      case partiallyPaid:
+        return 'Partially Paid';
+      case paid:
+        return 'Paid';
+      case cancelled:
+        return 'Cancelled';
+      default:
+        return 'Unknown';
+    }
+  }
+}

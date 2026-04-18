@@ -1,0 +1,118 @@
+{
+  "dashboardOverviewTitle": "نظرة عامة",
+  "dashboardSubtitle": "تابع مبيعات المصنع والتحصيلات",
+
+  "dashboardCustomers": "العملاء",
+  "dashboardProducts": "المنتجات",
+  "dashboardInvoices": "الفواتير",
+  "dashboardOutstanding": "المستحق",
+
+  "dashboardCollectionsSnapshot": "ملخص التحصيلات",
+  "dashboardRevenue": "الإيراد",
+  "dashboardCollected": "تم تحصيله",
+  "dashboardOpenInvoices": "الفواتير المفتوحة",
+
+  "dashboardQuickActions": "إجراءات سريعة",
+  "dashboardRecentInvoices": "أحدث الفواتير",
+  "dashboardViewAll": "عرض الكل",
+
+  "dashboardNoInvoicesTitle": "لا توجد فواتير بعد",
+  "dashboardNoInvoicesSubtitle": "أنشئ أول فاتورة لبدء متابعة المبيعات والتحصيلات.",
+  "dashboardGoToInvoices": "اذهب إلى الفواتير",
+
+  "dashboardTopOutstandingCustomers": "أعلى العملاء المستحق عليهم",
+  "dashboardNoOutstandingTitle": "لا توجد أرصدة مستحقة",
+  "dashboardNoOutstandingSubtitle": "عمل رائع، جميع العملاء قاموا بالسداد بالكامل حالياً.",
+
+  "invoiceStatusPaid": "مدفوعة",
+  "invoiceStatusPartial": "مدفوعة جزئياً",
+  "invoiceStatusCancelled": "ملغاة",
+  "invoiceStatusDraft": "مسودة",
+  "invoiceStatusUnpaid": "غير مدفوعة",
+
+  "dashboardInvoiceNumber": "فاتورة #{ref}",
+  "@dashboardInvoiceNumber": {
+    "placeholders": {
+      "ref": {}
+    }
+  },
+
+  "dashboardRemainingAmount": "المتبقي: ${amount}",
+  "@dashboardRemainingAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+    "productsTitle": "المنتجات",
+    "productsSearchHint": "ابحث عن المنتجات",
+    "productsTotalProducts": "إجمالي المنتجات",
+    "productsSavedLocally": "محفوظة محليًا",
+    "productsAddProduct": "إضافة منتج",
+    "productsAllProducts": "كل المنتجات",
+    "productsEmptyTitle": "لا توجد منتجات بعد",
+    "productsEmptySubtitle": "أضف أول منتج لبدء إنشاء الفواتير ومتابعة المخزون.",
+  
+    "productsItemCount": "{count, plural, =0{0 عنصر} =1{عنصر واحد} =2{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
+    "@productsItemCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+  
+    "productCreatedMessage": "تم إنشاء {name}",
+    "@productCreatedMessage": {
+      "placeholders": {
+        "name": {}
+      }
+    },
+  
+    "productUpdatedMessage": "تم تحديث {name}",
+    "@productUpdatedMessage": {
+      "placeholders": {
+        "name": {}
+      }
+    },
+  
+    "productDeletedMessage": "تم حذف {name}",
+    "@productDeletedMessage": {
+      "placeholders": {
+        "name": {}
+      }
+    },
+  
+    "productAddTitle": "إضافة منتج",
+    "productEditTitle": "تعديل المنتج",
+    "productDialogSubtitle": "أدخل تفاصيل المنتج بالأسفل.",
+    "productDetailsTitle": "تفاصيل المنتج",
+    "productDetailsSubtitle": "أضف منتجًا بسعر ثابت لاستخدامه في الفواتير وطلبات العملاء.",
+    "productNameLabel": "اسم المنتج",
+    "productNameHint": "أدخل اسم المنتج",
+    "productPriceLabel": "السعر",
+    "productPriceHint": "أدخل السعر الثابت",
+    "productUsageInfo": "سيكون هذا المنتج متاحًا لاحقًا أثناء إنشاء الفواتير وفوترة العملاء.",
+    "productSaveChanges": "حفظ التغييرات",
+    "productCreateButton": "إنشاء المنتج",
+  
+    "productNameRequired": "اسم المنتج مطلوب",
+    "productNameTooShort": "اسم المنتج قصير جدًا",
+    "productPriceRequired": "السعر مطلوب",
+    "productPriceInvalid": "أدخل سعرًا صحيحًا",
+    "productPricePositive": "يجب أن يكون السعر أكبر من 0",
+  
+    "deleteProductTitle": "حذف المنتج",
+    "deleteProductMessage": "هل أنت متأكد أنك تريد حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+    "@deleteProductMessage": {
+      "placeholders": {
+        "name": {}
+      }
+    },
+  
+    "commonCancel": "إلغاء",
+    "commonDelete": "حذف",
+    "commonEdit": "تعديل",
+  
+    "productFixedPrice": "سعر ثابت"
+  
+}
