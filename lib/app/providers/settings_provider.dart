@@ -1,57 +1,49 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../models/settings_state.dart';
+import 'shared_prefs_provider.dart';
 
-class AppSettingsController extends ChangeNotifier {
+part 'settings_provider.g.dart';
+
+@riverpod
+class Settings extends _$Settings {
   static const _themeModeKey = 'app_theme_mode';
   static const _localeKey = 'app_locale';
 
-  ThemeMode _themeMode = ThemeMode.system;
-  Locale _locale = const Locale('en');
-
-  ThemeMode get themeMode => _themeMode;
-  Locale get locale => _locale;
-
-  bool get isArabic => _locale.languageCode == 'ar';
-
-  Future<void> load() async {
-    final prefs = await SharedPreferences.getInstance();
+  @override
+  FutureOr<SettingsState> build() async {
+    final prefs = ref.watch(sharedPrefsProvider);
 
     final savedTheme = prefs.getString(_themeModeKey);
     final savedLocale = prefs.getString(_localeKey);
 
-    if (savedTheme != null) {
-      _themeMode = _themeModeFromString(savedTheme);
-    }
+    final themeMode = _themeModeFromString(savedTheme ?? 'system');
+    final locale = Locale(savedLocale ?? 'en');
 
-    if (savedLocale != null && savedLocale.isNotEmpty) {
-      _locale = Locale(savedLocale);
-    }
-
-    notifyListeners();
+    return SettingsState(
+      themeMode: themeMode,
+      locale: locale,
+    );
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
-    if (_themeMode == mode) return;
-
-    _themeMode = mode;
-
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(sharedPrefsProvider);
     await prefs.setString(_themeModeKey, _themeModeToString(mode));
-
-    notifyListeners();
+    
+    final currentState = state.value;
+    if (currentState != null) {
+      state = AsyncData(currentState.copyWith(themeMode: mode));
+    }
   }
 
   Future<void> setLocale(Locale locale) async {
-    if (_locale.languageCode == locale.languageCode) return;
-
-    _locale = locale;
-
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(sharedPrefsProvider);
     await prefs.setString(_localeKey, locale.languageCode);
-
-    notifyListeners();
+    
+    final currentState = state.value;
+    if (currentState != null) {
+      state = AsyncData(currentState.copyWith(locale: locale));
+    }
   }
 
   String _themeModeToString(ThemeMode mode) {

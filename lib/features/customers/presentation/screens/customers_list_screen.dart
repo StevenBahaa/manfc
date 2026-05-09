@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manfc/app/widgets/app_empty_state.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -10,59 +11,40 @@ import '../../../../app/widgets/app_primary_button.dart';
 import '../../../../app/widgets/app_scaffold.dart';
 import '../../../../app/widgets/app_search_field.dart';
 import '../../../../app/widgets/app_stat_card.dart';
-import '../../data/datasources/customer_local_datasource.dart';
 import '../../data/models/customer_model.dart';
 import '../../domain/entities/customer_entity.dart';
 import 'package:manfc/l10n/app_localizations.dart';
 
+import '../providers/customer_providers.dart';
 import '../widgets/add_edit_customer_dialog.dart';
 import '../widgets/customer_card.dart';
 import '../widgets/delete_customer_dialog.dart';
 import 'customer_details_screen.dart';
 
-class CustomersListScreen extends StatefulWidget {
+class CustomersListScreen extends ConsumerStatefulWidget {
   const CustomersListScreen({super.key});
 
   @override
-  State<CustomersListScreen> createState() => CustomersListScreenState();
+  ConsumerState<CustomersListScreen> createState() => CustomersListScreenState();
 }
 
-class CustomersListScreenState extends State<CustomersListScreen> {
+class CustomersListScreenState extends ConsumerState<CustomersListScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final CustomerLocalDataSource _localDataSource = CustomerLocalDataSource();
-
-  List<CustomerEntity> _allCustomers = [];
-  bool _isLoading = true;
   String _query = '';
 
-  List<CustomerEntity> get _filteredCustomers {
-    if (_query.trim().isEmpty) return _allCustomers;
+  List<CustomerEntity> _filterCustomers(List<CustomerEntity> customers) {
+    if (_query.trim().isEmpty) return customers;
 
     final q = _query.toLowerCase().trim();
 
-    return _allCustomers.where((customer) {
+    return customers.where((customer) {
       return customer.name.toLowerCase().contains(q) ||
           customer.phone.toLowerCase().contains(q);
     }).toList();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    loadCustomers();
-  }
-
-  Future<void> loadCustomers() async {
-    setState(() => _isLoading = true);
-
-    final customers = await _localDataSource.getAllCustomers();
-
-    if (!mounted) return;
-
-    setState(() {
-      _allCustomers = customers;
-      _isLoading = false;
-    });
+  void loadCustomers() {
+    ref.invalidate(customersProvider);
   }
 
   void _onSearchChanged(String value) {
@@ -97,8 +79,9 @@ class CustomersListScreenState extends State<CustomersListScreen> {
 
     if (result == null) return;
 
-    await _localDataSource.insertCustomer(CustomerModel.fromEntity(result));
-    await loadCustomers();
+    final repository = ref.read(customerRepositoryProvider);
+    await repository.saveCustomer(CustomerModel.fromEntity(result));
+    ref.invalidate(customersProvider);
 
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
@@ -113,8 +96,9 @@ class CustomersListScreenState extends State<CustomersListScreen> {
 
     if (updated == null) return;
 
-    await _localDataSource.updateCustomer(CustomerModel.fromEntity(updated));
-    await loadCustomers();
+    final repository = ref.read(customerRepositoryProvider);
+    await repository.saveCustomer(CustomerModel.fromEntity(updated));
+    ref.invalidate(customersProvider);
 
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
@@ -129,8 +113,9 @@ class CustomersListScreenState extends State<CustomersListScreen> {
 
     if (confirmed != true) return;
 
-    await _localDataSource.deleteCustomer(customer.id);
-    await loadCustomers();
+    final repository = ref.read(customerRepositoryProvider);
+    await repository.deleteCustomer(customer.id);
+    ref.invalidate(customersProvider);
 
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
@@ -156,9 +141,7 @@ class CustomersListScreenState extends State<CustomersListScreen> {
       buttonText: palette.textOnPrimary,
     );
 
-    final customers = _filteredCustomers;
-    final totalCustomers = _allCustomers.length;
-
+    final customersAsync = ref.watch(customersProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return AppScaffold(
@@ -168,114 +151,121 @@ class CustomersListScreenState extends State<CustomersListScreen> {
         onPressed: loadCustomers,
         icon: Icon(CupertinoIcons.refresh, color: palette.iconPrimary),
       ),
-      child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppSearchField(
-                    controller: _searchController,
-                    hintText: l10n.customersSearchHint,
-                    onChanged: _onSearchChanged,
-                    onClear: () {
-                      _searchController.clear();
-                      _onSearchChanged('');
+      child: customersAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (allCustomers) {
+          final customers = _filterCustomers(allCustomers);
+          final totalCustomers = allCustomers.length;
+
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppSearchField(
+                  controller: _searchController,
+                  hintText: l10n.customersSearchHint,
+                  onChanged: _onSearchChanged,
+                  onClear: () {
+                    _searchController.clear();
+                    _onSearchChanged('');
+                  },
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppStatCard(
+                        title: l10n.customersTotalTitle,
+                        value: '$totalCustomers',
+                        subtitle: l10n.customersTotalSubtitle,
+                        icon: CupertinoIcons.person_2_fill,
+                        tone: AppStatCardTone.blue,
+                        compact: true,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: AppStatCard(
+                        title: l10n.customersSearchableTitle,
+                        value: totalCustomers == 0 ? '0%' : '100%',
+                        subtitle: l10n.customersSearchableSubtitle,
+                        icon: CupertinoIcons.search,
+                        tone: AppStatCardTone.green,
+                        compact: true,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                AppPrimaryButton(
+                  text: l10n.customersAddBtn,
+                  prefixIcon: const Icon(CupertinoIcons.add),
+                  onPressed: _openAddCustomerDialog,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Row(
+                  children: [
+                    Text(l10n.customersAllCustomers, style: textStyles.title3),
+                    const Spacer(),
+                    Text(
+                      l10n.commonItemsCount(customers.length),
+                      style: textStyles.footnote.copyWith(
+                        color: palette.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                if (customers.isEmpty)
+                  AppEmptyState(
+                    icon: CupertinoIcons.person_2,
+                    title: l10n.customersEmptyTitle,
+                    subtitle: l10n.customersEmptySubtitle,
+                    actionLabel: l10n.customersAddBtn,
+                    onActionTap: _openAddCustomerDialog,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.cardPadding,
+                      vertical: AppSpacing.xl,
+                    ),
+                  )
+                else
+                  GridView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: customers.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: _gridCount(context),
+                      crossAxisSpacing: AppSpacing.md,
+                      mainAxisSpacing: AppSpacing.md,
+                      childAspectRatio: _gridChildAspectRatio(context),
+                    ),
+                    itemBuilder: (context, index) {
+                      final customer = customers[index];
+
+                      return CustomerCard(
+                        customer: customer,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  CustomerDetailsScreen(customer: customer),
+                            ),
+                          );
+                        },
+                        onEdit: () => _openEditCustomerDialog(customer),
+                        onDelete: () => _confirmDeleteCustomer(customer),
+                      );
                     },
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppStatCard(
-                          title: l10n.customersTotalTitle,
-                          value: '$totalCustomers',
-                          subtitle: l10n.customersTotalSubtitle,
-                          icon: CupertinoIcons.person_2_fill,
-                          tone: AppStatCardTone.blue,
-                          compact: true,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: AppStatCard(
-                          title: l10n.customersSearchableTitle,
-                          value: totalCustomers == 0 ? '0%' : '100%',
-                          subtitle: l10n.customersSearchableSubtitle,
-                          icon: CupertinoIcons.search,
-                          tone: AppStatCardTone.green,
-                          compact: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  AppPrimaryButton(
-                    text: l10n.customersAddBtn,
-                    prefixIcon: const Icon(CupertinoIcons.add),
-                    onPressed: _openAddCustomerDialog,
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Row(
-                    children: [
-                      Text(l10n.customersAllCustomers, style: textStyles.title3),
-                      const Spacer(),
-                      Text(
-                        l10n.commonItemsCount(customers.length),
-                        style: textStyles.footnote.copyWith(
-                          color: palette.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  if (customers.isEmpty)
-                    AppEmptyState(
-                      icon: CupertinoIcons.person_2,
-                      title: l10n.customersEmptyTitle,
-                      subtitle: l10n.customersEmptySubtitle,
-                      actionLabel: l10n.customersAddBtn,
-                      onActionTap: _openAddCustomerDialog,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.cardPadding,
-                        vertical: AppSpacing.xl,
-                      ),
-                    )
-                  else
-                    GridView.builder(
-                      padding: EdgeInsets.zero,
-                      itemCount: customers.length,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: _gridCount(context),
-                        crossAxisSpacing: AppSpacing.md,
-                        mainAxisSpacing: AppSpacing.md,
-                        childAspectRatio: _gridChildAspectRatio(context),
-                      ),
-                      itemBuilder: (context, index) {
-                        final customer = customers[index];
-
-                        return CustomerCard(
-                          customer: customer,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    CustomerDetailsScreen(customer: customer),
-                              ),
-                            );
-                          },
-                          onEdit: () => _openEditCustomerDialog(customer),
-                          onDelete: () => _confirmDeleteCustomer(customer),
-                        );
-                      },
-                    ),
-                  const SizedBox(height: AppSpacing.xl),
-                ],
-              ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
             ),
+          );
+        },
+      ),
     );
   }
 }

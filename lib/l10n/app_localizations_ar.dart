@@ -207,6 +207,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonCancel => 'إلغاء';
 
   @override
+  String get commonCurrency => 'ج.م';
+
+  @override
+  String get commonHome => 'الرئيسية';
+
+  @override
   String get commonDelete => 'حذف';
 
   @override
@@ -247,6 +253,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deleteCustomerTitle => 'حذف العميل';
+
+  @override
+  String deleteCustomerMessage(Object name) {
+    return 'هل أنت متأكد أنك تريد حذف \"$name\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
 
   @override
   String get invoicesAllInvoices => 'جميع الفواتير';

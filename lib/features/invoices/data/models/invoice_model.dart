@@ -1,4 +1,5 @@
 import '../../domain/entities/invoice_entity.dart';
+import '../../domain/entities/invoice_item_entity.dart';
 import 'invoice_item_model.dart';
 
 class InvoiceModel extends InvoiceEntity {
@@ -46,5 +47,29 @@ class InvoiceModel extends InvoiceEntity {
       'status': status,
       'created_at': createdAt.toIso8601String(),
     };
+  }
+
+  InvoiceModel copyWith({
+    String? id,
+    String? customerId,
+    String? customerName,
+    double? totalAmount,
+    double? paidAmount,
+    double? remainingAmount,
+    String? status,
+    DateTime? createdAt,
+    List<InvoiceItemEntity>? items,
+  }) {
+    return InvoiceModel(
+      id: id ?? this.id,
+      customerId: customerId ?? this.customerId,
+      customerName: customerName ?? this.customerName,
+      totalAmount: totalAmount ?? this.totalAmount,
+      paidAmount: paidAmount ?? this.paidAmount,
+      remainingAmount: remainingAmount ?? this.remainingAmount,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      items: items ?? this.items,
+    );
   }
 }

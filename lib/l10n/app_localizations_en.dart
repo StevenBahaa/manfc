@@ -204,6 +204,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonCancel => 'Cancel';
 
   @override
+  String get commonCurrency => '\$';
+
+  @override
+  String get commonHome => 'Home';
+
+  @override
   String get commonDelete => 'Delete';
 
   @override
@@ -244,6 +250,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteCustomerTitle => 'Delete Customer';
+
+  @override
+  String deleteCustomerMessage(Object name) {
+    return 'Are you sure you want to delete \"$name\"? This action cannot be undone.';
+  }
 
   @override
   String get invoicesAllInvoices => 'All Invoices';

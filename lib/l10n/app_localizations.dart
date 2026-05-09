@@ -443,6 +443,18 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get commonCancel;
 
+  /// No description provided for @commonCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'\$'**
+  String get commonCurrency;
+
+  /// No description provided for @commonHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get commonHome;
+
   /// No description provided for @commonDelete.
   ///
   /// In en, this message translates to:
@@ -526,6 +538,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete Customer'**
   String get deleteCustomerTitle;
+
+  /// No description provided for @deleteCustomerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"? This action cannot be undone.'**
+  String deleteCustomerMessage(Object name);
 
   /// No description provided for @invoicesAllInvoices.
   ///

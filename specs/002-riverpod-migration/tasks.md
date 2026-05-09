@@ -28,13 +28,13 @@
 
 **Purpose**: Core infrastructure and repository interfaces that MUST be complete before feature migration
 
-- [ ] T003 [P] [US3] Implement `dbProvider` (providing the SQLite `Database` instance) in `lib/app/providers/db_provider.dart`
-- [ ] T004 [P] [US1] Implement `sharedPrefsProvider` (providing `SharedPreferences` instance) in `lib/app/providers/shared_prefs_provider.dart`
-- [ ] T005 [P] [US3] Define `ICustomerRepository` interface in `lib/features/customers/domain/repositories/i_customer_repository.dart`
-- [ ] T006 [P] [US3] Define `IProductRepository` interface in `lib/features/products/domain/repositories/i_product_repository.dart`
-- [ ] T007 [P] [US3] Define `IInvoiceRepository` interface in `lib/features/invoices/domain/repositories/i_invoice_repository.dart`
-- [ ] T008 [P] [US3] Define `IPaymentRepository` interface in `lib/features/payments/domain/repositories/i_payment_repository.dart`
-- [ ] T009 [US1] Initialize `sharedPrefsProvider` override in `main()` within `lib/main.dart`
+- [X] T003 [P] [US3] Implement `dbProvider` (providing the SQLite `Database` instance) in `lib/app/providers/db_provider.dart`
+- [X] T004 [P] [US1] Implement `sharedPrefsProvider` (providing `SharedPreferences` instance) in `lib/app/providers/shared_prefs_provider.dart`
+- [X] T005 [P] [US3] Define `ICustomerRepository` interface in `lib/features/customers/domain/repositories/i_customer_repository.dart`
+- [X] T006 [P] [US3] Define `IProductRepository` interface in `lib/features/products/domain/repositories/i_product_repository.dart`
+- [X] T007 [P] [US3] Define `IInvoiceRepository` interface in `lib/features/invoices/domain/repositories/i_invoice_repository.dart`
+- [X] T008 [P] [US3] Define `IPaymentRepository` interface in `lib/features/payments/domain/repositories/i_payment_repository.dart`
+- [X] T009 [US1] Initialize `sharedPrefsProvider` override in `main()` within `lib/main.dart`
 
 ---
 
@@ -46,11 +46,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Define `SettingsState` model in `lib/app/models/settings_state.dart`
-- [ ] T011 [US1] Create `settingsProvider` (AsyncNotifier) in `lib/app/providers/settings_provider.dart`
-- [ ] T012 [US1] Migrate `lib/app/app.dart` to use `ref.watch(settingsProvider)` for themeMode and locale
-- [ ] T013 [US1] Migrate `lib/features/settings/presentation/screens/settings_screen.dart` to `ConsumerWidget`
-- [ ] T014 [US1] Remove `appSettingsController` from `MainShell` in `lib/app/navigation/main_shell.dart`
+- [X] T010 [US1] Define `SettingsState` model in `lib/app/models/settings_state.dart`
+- [X] T011 [US1] Create `settingsProvider` (AsyncNotifier) in `lib/app/providers/settings_provider.dart`
+- [X] T012 [US1] Migrate `lib/app/app.dart` to use `ref.watch(settingsProvider)` for themeMode and locale
+- [X] T013 [US1] Migrate `lib/features/settings/presentation/screens/settings_screen.dart` to `ConsumerWidget`
+- [X] T014 [US1] Remove `appSettingsController` from `MainShell` in `lib/app/navigation/main_shell.dart`
 
 **Checkpoint**: AppSettings migration complete. Old controller can be disabled (but not deleted yet).
 
@@ -64,10 +64,10 @@
 
 ### Implementation for Customer Feature
 
-- [ ] T015 [US3] Implement `CustomerRepositoryImpl` (using `CustomerLocalDataSource`) in `lib/features/customers/data/repositories/customer_repository_impl.dart`
-- [ ] T016 [P] [US2] Create `customerRepositoryProvider` in `lib/features/customers/presentation/providers/customer_providers.dart`
-- [ ] T017 [US2] Create `customersProvider` (FutureProvider) in `lib/features/customers/presentation/providers/customer_providers.dart`
-- [ ] T018 [US2] Migrate `lib/features/customers/presentation/screens/customers_list_screen.dart` to `ConsumerWidget` using `AsyncValue.when`
+- [X] T015 [US3] Implement `CustomerRepositoryImpl` (using `CustomerLocalDataSource`) in `lib/features/customers/data/repositories/customer_repository_impl.dart`
+- [X] T016 [P] [US2] Create `customerRepositoryProvider` in `lib/features/customers/presentation/providers/customer_providers.dart`
+- [X] T017 [US2] Create `customersProvider` (FutureProvider) in `lib/features/customers/presentation/providers/customer_providers.dart`
+- [X] T018 [US2] Migrate `lib/features/customers/presentation/screens/customers_list_screen.dart` to `ConsumerWidget` using `AsyncValue.when`
 
 ---
 
@@ -79,10 +79,10 @@
 
 ### Implementation for Product Feature
 
-- [ ] T019 [US3] Implement `ProductRepositoryImpl` (using `ProductLocalDataSource`) in `lib/features/products/data/repositories/product_repository_impl.dart`
-- [ ] T020 [P] [US2] Create `productRepositoryProvider` in `lib/features/products/presentation/providers/product_providers.dart`
-- [ ] T021 [US2] Create `productsProvider` (FutureProvider) in `lib/features/products/presentation/providers/product_providers.dart`
-- [ ] T022 [US2] Migrate `lib/features/products/presentation/screens/products_list_screen.dart` to `ConsumerWidget`
+- [X] T019 [US3] Implement `ProductRepositoryImpl` (using `ProductLocalDataSource`) in `lib/features/products/data/repositories/product_repository_impl.dart`
+- [X] T020 [P] [US2] Create `productRepositoryProvider` in `lib/features/products/presentation/providers/product_providers.dart`
+- [X] T021 [US2] Create `productsProvider` (FutureProvider) in `lib/features/products/presentation/providers/product_providers.dart`
+- [X] T022 [US2] Migrate `lib/features/products/presentation/screens/products_list_screen.dart` to `ConsumerWidget`
 
 ---
 
@@ -90,7 +90,7 @@
 
 **Goal**: Migrate the Dashboard screen to use Riverpod for its aggregated data fetching.
 
-- [ ] T023 Migrate `lib/features/dashboard/presentation/screens/dashboard_screen.dart` to `ConsumerWidget`
+- [X] T023 Migrate `lib/features/dashboard/presentation/screens/dashboard_screen.dart` to `ConsumerWidget`
 
 ---
 
@@ -102,11 +102,11 @@
 
 ### Implementation for User Story 4
 
-- [ ] T024 [US3] Implement `InvoiceRepositoryImpl` in `lib/features/invoices/data/repositories/invoice_repository_impl.dart`
-- [ ] T025 [P] [US4] Create `invoiceRepositoryProvider` in `lib/features/invoices/presentation/providers/invoice_providers.dart`
-- [ ] T026 [US4] Define `InvoiceFormState` in `lib/features/invoices/presentation/providers/invoice_form_state.dart`
-- [ ] T027 [US4] Create `InvoiceFormNotifier` in `lib/features/invoices/presentation/providers/invoice_form_provider.dart`
-- [ ] T028 [US4] Migrate `lib/features/invoices/presentation/screens/invoice_form_screen.dart` to use `InvoiceFormNotifier`
+- [X] T024 [US3] Implement `InvoiceRepositoryImpl` in `lib/features/invoices/data/repositories/invoice_repository_impl.dart`
+- [X] T025 [P] [US4] Create `invoiceRepositoryProvider` in `lib/features/invoices/presentation/providers/invoice_providers.dart`
+- [X] T026 [US4] Define `InvoiceFormState` in `lib/features/invoices/presentation/providers/invoice_form_state.dart`
+- [X] T027 [US4] Create `InvoiceFormNotifier` in `lib/features/invoices/presentation/providers/invoice_form_provider.dart`
+- [X] T028 [US4] Migrate `lib/features/invoices/presentation/screens/invoice_form_screen.dart` to use `InvoiceFormNotifier`
 
 ---
 
@@ -114,8 +114,8 @@
 
 **Purpose**: Removing legacy code and final audits.
 
-- [ ] T029 [P] Delete legacy controller `lib/app/controllers/app_settings_controller.dart`
-- [ ] T030 Final check of all `setState` occurrences in the presentation layer
+- [X] T029 [P] Delete legacy controller `lib/app/controllers/app_settings_controller.dart`
+- [X] T030 Final check of all `setState` occurrences in the presentation layer
 
 ---
 
