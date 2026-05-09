@@ -46,10 +46,10 @@ class InvoiceLocalDataSource {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
-      for (final item in invoice.items.cast<InvoiceItemModel>()) {
+      for (final item in invoice.items) {
         await txn.insert(
           DbTables.invoiceItems,
-          item.toMap(),
+          InvoiceItemModel.fromEntity(item).toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
@@ -73,10 +73,10 @@ class InvoiceLocalDataSource {
         whereArgs: [invoice.id],
       );
 
-      for (final item in invoice.items.cast<InvoiceItemModel>()) {
+      for (final item in invoice.items) {
         await txn.insert(
           DbTables.invoiceItems,
-          item.toMap(),
+          InvoiceItemModel.fromEntity(item).toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
