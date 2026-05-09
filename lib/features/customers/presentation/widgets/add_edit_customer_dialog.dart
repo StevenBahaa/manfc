@@ -6,6 +6,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/widgets/app_primary_button.dart';
 import '../../domain/entities/customer_entity.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
 class AddEditCustomerDialog extends StatefulWidget {
   final CustomerEntity? customer;
@@ -38,20 +39,18 @@ class _AddEditCustomerDialogState extends State<AddEditCustomerDialog> {
   }
 
   String? _validateName(String? value) {
+    final l10n = AppLocalizations.of(context)!;
     final text = value?.trim() ?? '';
-
-    if (text.isEmpty) return 'Customer name is required';
-    if (text.length < 2) return 'Customer name is too short';
-
+    if (text.isEmpty) return l10n.errorCustomerNameRequired;
+    if (text.length < 2) return l10n.errorCustomerNameShort;
     return null;
   }
 
   String? _validatePhone(String? value) {
+    final l10n = AppLocalizations.of(context)!;
     final text = value?.trim() ?? '';
-
-    if (text.isEmpty) return 'Phone number is required';
-    if (text.length < 6) return 'Enter a valid phone number';
-
+    if (text.isEmpty) return l10n.errorCustomerPhoneRequired;
+    if (text.length < 6) return l10n.errorCustomerPhoneInvalid;
     return null;
   }
 
@@ -118,7 +117,7 @@ class _AddEditCustomerDialogState extends State<AddEditCustomerDialog> {
                   children: [
                     Expanded(
                       child: Text(
-                        widget.isEditMode ? 'Edit Customer' : 'Add Customer',
+                        widget.isEditMode ? AppLocalizations.of(context)!.customerEditTitle : AppLocalizations.of(context)!.customersAddBtn,
                         style: textStyles.title2,
                       ),
                     ),
@@ -130,7 +129,7 @@ class _AddEditCustomerDialogState extends State<AddEditCustomerDialog> {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'Enter the customer details below.',
+                  AppLocalizations.of(context)!.customerAddDesc,
                   style: textStyles.footnote.copyWith(
                     color: palette.textSecondary,
                   ),
@@ -141,9 +140,9 @@ class _AddEditCustomerDialogState extends State<AddEditCustomerDialog> {
                   textInputAction: TextInputAction.next,
                   validator: _validateName,
                   style: textStyles.body,
-                  decoration: const InputDecoration(
-                    labelText: 'Customer Name',
-                    hintText: 'Enter customer name',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.customerNameLabel,
+                    hintText: AppLocalizations.of(context)!.customerNameHint,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -154,14 +153,14 @@ class _AddEditCustomerDialogState extends State<AddEditCustomerDialog> {
                   validator: _validatePhone,
                   onFieldSubmitted: (_) => _save(),
                   style: textStyles.body,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    hintText: 'Enter phone number',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.customerPhoneLabel,
+                    hintText: AppLocalizations.of(context)!.customerPhoneHint,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 AppPrimaryButton(
-                  text: widget.isEditMode ? 'Save Changes' : 'Create Customer',
+                  text: widget.isEditMode ? AppLocalizations.of(context)!.commonSaveChanges : AppLocalizations.of(context)!.customerCreateTitle,
                   isLoading: _isSaving,
                   prefixIcon: Icon(
                     widget.isEditMode

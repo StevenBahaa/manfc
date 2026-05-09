@@ -6,6 +6,7 @@ import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../domain/entities/customer_entity.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
 class CustomerCard extends StatelessWidget {
   final CustomerEntity customer;
@@ -80,9 +81,9 @@ class CustomerCard extends StatelessWidget {
                         onDelete?.call();
                       }
                     },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      PopupMenuItem(value: 'delete', child: Text('Delete')),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(value: 'edit', child: Text(AppLocalizations.of(context)!.commonEdit)),
+                      PopupMenuItem(value: 'delete', child: Text(AppLocalizations.of(context)!.commonDelete)),
                     ],
                   ),
                 ],
@@ -96,7 +97,7 @@ class CustomerCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Phone Number',
+                AppLocalizations.of(context)!.customerPhoneLabel,
                 style: textStyles.footnote.copyWith(
                   color: palette.textSecondary,
                 ),

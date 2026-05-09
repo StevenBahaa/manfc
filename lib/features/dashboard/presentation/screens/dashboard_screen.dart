@@ -17,6 +17,7 @@ import '../../../payments/domain/entities/payment_entity.dart';
 import '../../../products/data/datasources/product_local_datasource.dart';
 import '../../../products/domain/entities/product_entity.dart';
 import '../../../../app/widgets/app_empty_state.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import 'package:manfc/l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -25,10 +26,10 @@ class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key, required this.onNavigateToTab});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  State<DashboardScreen> createState() => DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class DashboardScreenState extends State<DashboardScreen> {
   final CustomerLocalDataSource _customerLocalDataSource =
       CustomerLocalDataSource();
   final ProductLocalDataSource _productLocalDataSource =
@@ -48,10 +49,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDashboard();
+    loadDashboard();
   }
 
-  Future<void> _loadDashboard() async {
+  Future<void> loadDashboard() async {
     setState(() => _isLoading = true);
 
     final customers = await _customerLocalDataSource.getAllCustomers();
@@ -150,13 +151,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       title: l10n.dashboardOverviewTitle,
       useLargeTitle: true,
       trailing: IconButton(
-        onPressed: _loadDashboard,
+        onPressed: loadDashboard,
         icon: Icon(CupertinoIcons.refresh, color: palette.iconPrimary),
       ),
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-              onRefresh: _loadDashboard,
+              onRefresh: loadDashboard,
               child: ListView(
                 physics: const BouncingScrollPhysics(
                   parent: AlwaysScrollableScrollPhysics(),
@@ -196,7 +197,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       _DashboardStatCard(
                         title: l10n.dashboardOutstanding,
-                        value: '\$${_totalOutstanding.toStringAsFixed(0)}',
+                        value: CurrencyFormatter.formatCompact(_totalOutstanding, l10n),
                         icon: CupertinoIcons.exclamationmark_circle_fill,
                         highlight: true,
                       ),
@@ -220,17 +221,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         _SnapshotRow(
                           label: l10n.dashboardRevenue,
-                          value: '\$${_totalRevenue.toStringAsFixed(2)}',
+                          value: CurrencyFormatter.format(_totalRevenue, l10n),
                         ),
                         const SizedBox(height: AppSpacing.md),
                         _SnapshotRow(
                           label: l10n.dashboardCollected,
-                          value: '\$${_totalCollected.toStringAsFixed(2)}',
+                          value: CurrencyFormatter.format(_totalCollected, l10n),
                         ),
                         const SizedBox(height: AppSpacing.md),
                         _SnapshotRow(
                           label: l10n.dashboardOutstanding,
-                          value: '\$${_totalOutstanding.toStringAsFixed(2)}',
+                          value: CurrencyFormatter.format(_totalOutstanding, l10n),
                           emphasize: true,
                         ),
                         const SizedBox(height: AppSpacing.md),
@@ -325,7 +326,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     InvoiceDetailsScreen(invoice: invoice),
                               ),
                             );
-                            await _loadDashboard();
+                            await loadDashboard();
                           },
                         ),
                       ),
@@ -582,9 +583,8 @@ class _RecentInvoiceCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '\$${invoice.totalAmount.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    color: palette.textPrimary,
+                  CurrencyFormatter.format(invoice.totalAmount, l10n),
+                  style: const TextStyle(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -615,7 +615,7 @@ class _RecentInvoiceCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               l10n.dashboardRemainingAmount(
-                '\$${invoice.remainingAmount.toStringAsFixed(2)}',
+                CurrencyFormatter.format(invoice.remainingAmount, l10n),
               ),
               style: TextStyle(color: palette.textSecondary, fontSize: 13),
             ),
@@ -633,6 +633,7 @@ class _OutstandingCustomerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final palette = Theme.of(context).brightness == Brightness.dark
         ? AppColors.dark
         : AppColors.light;
@@ -673,7 +674,7 @@ class _OutstandingCustomerCard extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.md),
           Text(
-            '\$${item.amount.toStringAsFixed(2)}',
+            CurrencyFormatter.format(item.amount, l10n),
             style: TextStyle(
               color: palette.primary,
               fontWeight: FontWeight.w700,

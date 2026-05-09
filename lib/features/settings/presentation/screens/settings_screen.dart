@@ -6,6 +6,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/widgets/app_scaffold.dart';
 import '../widgets/settings_option_tile.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
 class SettingsScreen extends StatelessWidget {
   final AppSettingsController controller;
@@ -25,13 +26,13 @@ class SettingsScreen extends StatelessWidget {
       buttonText: palette.textOnPrimary,
     );
 
-    final isArabic = controller.locale.languageCode == 'ar';
+    final l10n = AppLocalizations.of(context)!;
 
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
         return AppScaffold(
-          title: isArabic ? 'الإعدادات' : 'Settings',
+          title: l10n.settingsTitle,
           useLargeTitle: true,
           child: SingleChildScrollView(
             padding: const EdgeInsets.only(
@@ -44,14 +45,12 @@ class SettingsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isArabic
-                      ? 'خصص مظهر التطبيق واللغة'
-                      : 'Customize your app appearance and language',
+                  l10n.settingsSubtitle,
                   style: textStyles.body.copyWith(color: palette.textSecondary),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 Text(
-                  isArabic ? 'المظهر' : 'Appearance',
+                  l10n.settingsAppearance,
                   style: textStyles.title3,
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -65,28 +64,22 @@ class SettingsScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       SettingsOptionTile(
-                        title: isArabic ? 'فاتح' : 'Light',
-                        subtitle: isArabic
-                            ? 'تشغيل الوضع الفاتح دائمًا'
-                            : 'Always use light mode',
+                        title: l10n.settingsLightMode,
+                        subtitle: l10n.settingsLightModeDesc,
                         isSelected: controller.themeMode == ThemeMode.light,
                         onTap: () => controller.setThemeMode(ThemeMode.light),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       SettingsOptionTile(
-                        title: isArabic ? 'داكن' : 'Dark',
-                        subtitle: isArabic
-                            ? 'تشغيل الوضع الداكن دائمًا'
-                            : 'Always use dark mode',
+                        title: l10n.settingsDarkMode,
+                        subtitle: l10n.settingsDarkModeDesc,
                         isSelected: controller.themeMode == ThemeMode.dark,
                         onTap: () => controller.setThemeMode(ThemeMode.dark),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       SettingsOptionTile(
-                        title: isArabic ? 'حسب الجهاز' : 'System',
-                        subtitle: isArabic
-                            ? 'اتبع إعدادات الجهاز'
-                            : 'Follow device settings',
+                        title: l10n.settingsSystemMode,
+                        subtitle: l10n.settingsSystemModeDesc,
                         isSelected: controller.themeMode == ThemeMode.system,
                         onTap: () => controller.setThemeMode(ThemeMode.system),
                       ),
@@ -94,7 +87,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                Text(isArabic ? 'اللغة' : 'Language', style: textStyles.title3),
+                Text(l10n.settingsLanguage, style: textStyles.title3),
                 const SizedBox(height: AppSpacing.md),
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.cardPadding),
@@ -106,15 +99,15 @@ class SettingsScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       SettingsOptionTile(
-                        title: 'English',
-                        subtitle: 'App language in English',
+                        title: l10n.settingsLanguageEnglish,
+                        subtitle: l10n.settingsLanguageEnglishDesc,
                         isSelected: controller.locale.languageCode == 'en',
                         onTap: () => controller.setLocale(const Locale('en')),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       SettingsOptionTile(
-                        title: 'العربية',
-                        subtitle: 'لغة التطبيق بالعربية',
+                        title: l10n.settingsLanguageArabic,
+                        subtitle: l10n.settingsLanguageArabicDesc,
                         isSelected: controller.locale.languageCode == 'ar',
                         onTap: () => controller.setLocale(const Locale('ar')),
                       ),

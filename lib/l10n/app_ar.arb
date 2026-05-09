@@ -110,9 +110,185 @@
     },
   
     "commonCancel": "إلغاء",
+    "commonCurrency": "ج.م",
+    "commonHome": "الرئيسية",
     "commonDelete": "حذف",
     "commonEdit": "تعديل",
   
-    "productFixedPrice": "سعر ثابت"
-  
+    "productFixedPrice": "سعر ثابت",
+
+    "customersAllCustomers": "جميع العملاء",
+    "customersSearchHint": "ابحث عن العملاء",
+    "customerDetailsTitle": "تفاصيل العميل",
+    "customerOverview": "نظرة عامة",
+    "customerLedger": "كشف الحساب",
+    "customerNoActivity": "لا يوجد نشاط لهذا العميل بعد",
+    "customerNameLabel": "اسم العميل",
+    "customerNameHint": "أدخل اسم العميل",
+    "customerPhoneLabel": "رقم الهاتف",
+    "customerPhoneHint": "أدخل رقم الهاتف",
+    "deleteCustomerTitle": "حذف العميل",
+    "deleteCustomerMessage": "هل أنت متأكد أنك تريد حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+    "@deleteCustomerMessage": {
+      "placeholders": {
+        "name": {}
+      }
+    },
+    "invoicesAllInvoices": "جميع الفواتير",
+    "invoicesSearchHint": "ابحث عن الفواتير",
+    "invoiceUpdatedMessage": "تم تحديث الفاتورة",
+    "invoiceItemsTitle": "عناصر الفاتورة",
+    "invoiceGrandTotal": "المبلغ الإجمالي",
+    "invoicePaymentHistory": "سجل المدفوعات",
+    "invoiceFormItems": "العناصر",
+    "invoiceFormAddItem": "إضافة عنصر",
+    "invoiceFormTotal": "إجمالي الفاتورة",
+    "invoiceFormCustomer": "العميل",
+    "invoiceFormProduct": "المنتج",
+    "invoiceFormQuantity": "الكمية",
+    
+    "paymentAddTitle": "إضافة دفعة",
+    "paymentMethodCash": "نقدي",
+    "paymentMethodBankTransfer": "تحويل بنكي",
+    "paymentMethodCard": "بطاقة",
+    "paymentMethodOther": "أخرى",
+    "paymentAmountLabel": "المبلغ",
+    "paymentAmountHint": "0.00",
+    "paymentMethodLabel": "طريقة الدفع",
+    "paymentNoteLabel": "ملاحظة",
+    "paymentNoteHint": "ملاحظة اختيارية",
+    "paymentDateLabel": "تاريخ الدفع",
+
+    "invoiceDateLabel": "تاريخ الفاتورة",
+
+    "settingsTitle": "الإعدادات",
+    "settingsSubtitle": "خصص مظهر التطبيق واللغة",
+    "settingsAppearance": "المظهر",
+    "settingsLightMode": "فاتح",
+    "settingsLightModeDesc": "تشغيل الوضع الفاتح دائمًا",
+    "settingsDarkMode": "داكن",
+    "settingsDarkModeDesc": "تشغيل الوضع الداكن دائمًا",
+    "settingsSystemMode": "حسب الجهاز",
+    "settingsSystemModeDesc": "اتبع إعدادات الجهاز",
+    "settingsLanguage": "اللغة",
+    "settingsLanguageEnglish": "English",
+    "settingsLanguageEnglishDesc": "App language in English",
+    "settingsLanguageArabic": "العربية",
+    "settingsLanguageArabicDesc": "لغة التطبيق بالعربية",
+
+    "appTitle": "تطبيق مبيعات المصنع",
+
+    "commonSearch": "بحث",
+    "commonTotal": "الإجمالي",
+    "commonPaid": "المدفوع",
+    "commonRemaining": "المتبقي",
+    "commonQuantity": "الكمية",
+    "commonUnitPrice": "سعر الوحدة",
+    "commonStatus": "الحالة",
+    "commonCustomer": "العميل",
+    "commonDate": "التاريخ",
+    "commonNoNote": "لا توجد ملاحظة",
+
+    "productDeleted": "تم حذف المنتج",
+    "errorProductNameRequired": "اسم المنتج مطلوب",
+    "errorProductNameShort": "اسم المنتج قصير جداً",
+    "errorProductPriceRequired": "السعر مطلوب",
+    "errorProductPriceInvalid": "أدخل سعراً صحيحاً",
+    "errorProductPriceZero": "يجب أن يكون السعر أكبر من صفر",
+
+    "errorInvalidAmount": "أدخل مبلغ دفع صحيح",
+    "errorAmountExceedsRemaining": "لا يمكن أن يتجاوز الدفع المبلغ المتبقي",
+    "savePaymentBtn": "حفظ الدفعة",
+
+    "invoicesTotalTitle": "إجمالي الفواتير",
+    "invoicesTotalSubtitle": "محفوظة محلياً",
+    "invoicesRevenueTitle": "إجمالي الإيرادات",
+    "invoicesRevenueSubtitle": "إجمالي جميع الفواتير",
+    "invoicesCreateBtn": "إنشاء فاتورة",
+    "invoicesVisibleTitle": "الفواتير الظاهرة",
+    "invoicesOutstandingTitle": "المتبقي",
+    "invoicesEmptyTitle": "لا توجد فواتير",
+    "errorSelectCustomer": "الرجاء اختيار عميل",
+    "errorAddInvoiceItem": "أضف عنصراً واحداً صحيحاً على الأقل",
+    "invoiceDetailsTitle": "تفاصيل الفاتورة",
+    "invoiceAddPaymentBtn": "إضافة دفعة",
+    "invoiceItemsCount": "عدد العناصر",
+    "invoiceLineTotal": "إجمالي السطر",
+    "errorCreateCustomerFirst": "الرجاء إنشاء عميل واحد على الأقل أولاً",
+    "errorCreateProductFirst": "الرجاء إنشاء منتج واحد على الأقل أولاً",
+    "invoiceCreatedMessage": "تم إنشاء الفاتورة",
+    "invoiceDeletedMessage": "تم حذف الفاتورة",
+
+    "customersTotalTitle": "إجمالي العملاء",
+    "customersTotalSubtitle": "محفوظة محلياً",
+    "customersSearchableTitle": "قابل للبحث",
+    "customersSearchableSubtitle": "بالاسم ورقم الهاتف",
+    "customersAddBtn": "إضافة عميل",
+    "customersEmptyTitle": "لا يوجد عملاء حتى الآن",
+    "customerStatsInvoiced": "المفوتر",
+    "customerStatsPaid": "المدفوع",
+    "customerStatsOutstanding": "المتبقي",
+    "customerLedgerInvoiceCreated": "تم إنشاء الفاتورة #{ref}",
+    "@customerLedgerInvoiceCreated": {
+      "placeholders": {
+        "ref": {
+          "type": "String"
+        }
+      }
+    },
+    "customerLedgerInvoiceDesc": "أُضيفت إلى رصيد العميل",
+    "customerLedgerPaymentReceived": "تم استلام دفعة",
+    "customerDeletedMessage": "تم حذف العميل",
+    "customerSavedMessage": "تم حفظ العميل",
+
+    "invoicesEmptySubtitleNew": "قم بإنشاء فاتورتك الأولى لبدء تتبع المبيعات والمدفوعات.",
+    "invoicesEmptySubtitleSearch": "لا توجد فواتير تطابق البحث الحالي أو الفلاتر المحددة.",
+    "invoiceFilterAll": "الكل",
+    "invoiceFilterOutstanding": "المتبقي",
+    "invoiceFilterPaid": "المدفوع",
+    "invoiceFilterCancelled": "ملغاة",
+    "customersEmptySubtitle": "أضف عميلك الأول لبدء إنشاء الفواتير وتتبع الأرصدة.",
+    "commonItemsCount": "{count} عناصر",
+    "@commonItemsCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "commonSaveChanges": "حفظ التغييرات",
+    "invoiceEditTitle": "تعديل الفاتورة",
+    "productCreateTitle": "إضافة منتج",
+    "productEditTitle": "تعديل المنتج",
+    "invoiceRefTitle": "فاتورة #{ref}",
+    "@invoiceRefTitle": {
+      "placeholders": {
+        "ref": {
+          "type": "String"
+        }
+      }
+    },
+    "invoiceNoPaymentsYet": "لا توجد مدفوعات بعد",
+    "customerEditTitle": "تعديل العميل",
+    "customerCreateTitle": "إضافة عميل",
+    "customerAddDesc": "أدخل تفاصيل العميل أدناه.",
+    "errorCustomerNameRequired": "اسم العميل مطلوب",
+    "errorCustomerNameShort": "اسم العميل قصير جداً",
+    "errorCustomerPhoneRequired": "رقم الهاتف مطلوب",
+    "errorCustomerPhoneInvalid": "أدخل رقم هاتف صحيح",
+    "statusDraft": "مسودة",
+    "statusUnpaid": "غير مدفوع",
+    "statusPartiallyPaid": "مدفوع جزئياً",
+    "statusPaid": "مدفوع",
+    "statusCancelled": "ملغاة",
+    "statusUnknown": "غير معروف",
+    "deleteInvoiceTitle": "حذف الفاتورة",
+    "deleteInvoiceMessage": "هل أنت متأكد من حذف الفاتورة #{ref}؟ لا يمكن التراجع عن هذا الإجراء.",
+    "@deleteInvoiceMessage": {
+      "placeholders": {
+        "ref": {
+          "type": "String"
+        }
+      }
+    }
 }

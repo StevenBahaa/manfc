@@ -9,6 +9,7 @@ import '../../../invoices/data/models/invoice_model.dart';
 import '../../../payments/data/datasources/payment_local_data_source.dart';
 import '../../../payments/data/models/payment_model.dart';
 import '../../domain/entities/customer_entity.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
 class CustomerDetailsScreen extends StatefulWidget {
   final CustomerEntity customer;
@@ -70,10 +71,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
     return value < 0 ? 0 : value;
   }
 
-  List<_LedgerEntry> get _ledgerEntries {
+  List<_LedgerEntry> _getLedgerEntries(AppLocalizations l10n) {
     final entries = <_LedgerEntry>[
-      ..._invoices.map((invoice) => _LedgerEntry.invoice(invoice)),
-      ..._payments.map((payment) => _LedgerEntry.payment(payment)),
+      ..._invoices.map((invoice) => _LedgerEntry.invoice(invoice, l10n)),
+      ..._payments.map((payment) => _LedgerEntry.payment(payment, l10n)),
     ];
 
     entries.sort((a, b) => b.date.compareTo(a.date));
@@ -95,7 +96,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: AppBar(title: const Text('Customer Details')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.customerDetailsTitle),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -111,20 +114,23 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                     phone: widget.customer.phone,
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  Text('Overview', style: textStyles.title3),
+                  Text(
+                    AppLocalizations.of(context)!.customerOverview,
+                    style: textStyles.title3,
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     children: [
                       Expanded(
                         child: _SummaryCard(
-                          title: 'Invoiced',
+                          title: AppLocalizations.of(context)!.customerStatsInvoiced,
                           value: '\$${_totalInvoiced.toStringAsFixed(2)}',
                         ),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: _SummaryCard(
-                          title: 'Paid',
+                          title: AppLocalizations.of(context)!.customerStatsPaid,
                           value: '\$${_totalPaid.toStringAsFixed(2)}',
                         ),
                       ),
@@ -132,31 +138,37 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _SummaryCard(
-                    title: 'Outstanding',
+                    title: AppLocalizations.of(context)!.customerStatsOutstanding,
                     value: '\$${_outstanding.toStringAsFixed(2)}',
                     fullWidth: true,
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  Text('Ledger', style: textStyles.title3),
+                  Text(
+                    AppLocalizations.of(context)!.customerLedger,
+                    style: textStyles.title3,
+                  ),
                   const SizedBox(height: AppSpacing.md),
-                  if (_ledgerEntries.isEmpty)
-                    const _EmptyCard(
-                      message: 'No activity for this customer yet',
+                  if (_getLedgerEntries(AppLocalizations.of(context)!).isEmpty)
+                    _EmptyCard(
+                      message: AppLocalizations.of(context)!.customerNoActivity,
                     )
                   else
                     ...List.generate(
-                      _ledgerEntries.length,
-                      (index) => Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index == _ledgerEntries.length - 1
-                              ? 0
-                              : AppSpacing.md,
-                        ),
-                        child: _LedgerTimelineTile(
-                          entry: _ledgerEntries[index],
-                          isLast: index == _ledgerEntries.length - 1,
-                        ),
-                      ),
+                      _getLedgerEntries(AppLocalizations.of(context)!).length,
+                      (index) {
+                        final ledgerEntries = _getLedgerEntries(AppLocalizations.of(context)!);
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: index == ledgerEntries.length - 1
+                                ? 0
+                                : AppSpacing.md,
+                          ),
+                          child: _LedgerTimelineTile(
+                            entry: ledgerEntries[index],
+                            isLast: index == ledgerEntries.length - 1,
+                          ),
+                        );
+                      },
                     ),
                 ],
               ),
@@ -182,7 +194,7 @@ class _LedgerEntry {
     required this.isPositive,
   });
 
-  factory _LedgerEntry.invoice(InvoiceModel invoice) {
+  factory _LedgerEntry.invoice(InvoiceModel invoice, AppLocalizations l10n) {
     final ref = invoice.id.length >= 6
         ? invoice.id.substring(invoice.id.length - 6)
         : invoice.id;
@@ -190,37 +202,37 @@ class _LedgerEntry {
     return _LedgerEntry(
       type: 'invoice',
       date: invoice.createdAt,
-      title: 'Invoice #$ref created',
-      subtitle: 'Added to customer balance',
+      title: l10n.customerLedgerInvoiceCreated(ref),
+      subtitle: l10n.customerLedgerInvoiceDesc,
       amount: invoice.totalAmount,
       isPositive: true,
     );
   }
 
-  factory _LedgerEntry.payment(PaymentModel payment) {
+  factory _LedgerEntry.payment(PaymentModel payment, AppLocalizations l10n) {
     return _LedgerEntry(
       type: 'payment',
       date: payment.paymentDate,
-      title: 'Payment received',
+      title: l10n.customerLedgerPaymentReceived,
       subtitle: payment.note.isEmpty
-          ? _formatMethod(payment.method)
-          : '${_formatMethod(payment.method)} • ${payment.note}',
+          ? _formatMethod(payment.method, l10n)
+          : '${_formatMethod(payment.method, l10n)} • ${payment.note}',
       amount: payment.amount,
       isPositive: false,
     );
   }
 
-  static String _formatMethod(String method) {
+  static String _formatMethod(String method, AppLocalizations l10n) {
     switch (method) {
       case 'bank_transfer':
-        return 'Bank Transfer';
+        return l10n.paymentMethodBankTransfer;
       case 'card':
-        return 'Card';
+        return l10n.paymentMethodCard;
       case 'cash':
-        return 'Cash';
+        return l10n.paymentMethodCash;
       case 'other':
       default:
-        return 'Other';
+        return l10n.paymentMethodOther;
     }
   }
 }

@@ -1,3 +1,5 @@
+import 'package:manfc/l10n/app_localizations.dart';
+
 abstract final class InvoiceStatus {
   static const String draft = 'draft';
   static const String unpaid = 'unpaid';
@@ -20,6 +22,25 @@ abstract final class InvoiceStatus {
     return partiallyPaid;
   }
 
+  /// Returns the localized label for a given invoice status.
+  static String localizedLabel(String status, AppLocalizations l10n) {
+    switch (status) {
+      case draft:
+        return l10n.statusDraft;
+      case unpaid:
+        return l10n.statusUnpaid;
+      case partiallyPaid:
+        return l10n.statusPartiallyPaid;
+      case paid:
+        return l10n.statusPaid;
+      case cancelled:
+        return l10n.statusCancelled;
+      default:
+        return l10n.statusUnknown;
+    }
+  }
+
+  /// Non-localized fallback label (for data/logging).
   static String label(String status) {
     switch (status) {
       case draft:

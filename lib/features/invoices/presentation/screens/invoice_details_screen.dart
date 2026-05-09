@@ -21,6 +21,8 @@ import '../../../payments/data/datasources/payment_local_data_source.dart';
 import '../../../payments/data/models/payment_model.dart';
 import '../../../payments/domain/entities/payment_entity.dart';
 import '../../../payments/presentation/widgets/add_payment_sheet.dart';
+import '../../../payments/domain/constants/payment_method.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
 class InvoiceDetailsScreen extends StatefulWidget {
   final InvoiceEntity invoice;
@@ -178,8 +180,8 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Invoice updated'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.invoiceUpdatedMessage),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -202,8 +204,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
         ? _invoice.id.substring(_invoice.id.length - 6)
         : _invoice.id;
 
+    final l10n = AppLocalizations.of(context)!;
     return AppScaffold(
-      title: 'Invoice Details',
+      title: l10n.invoiceDetailsTitle,
       useLargeTitle: false,
       trailing: IconButton(
         onPressed: _editInvoice,
@@ -235,7 +238,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Invoice #$invoiceRef',
+                          l10n.invoiceRefTitle(invoiceRef),
                           style: textStyles.title2,
                         ),
                       ),
@@ -248,7 +251,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: AppPrimaryButton(
-                        text: 'Add Payment',
+                        text: l10n.invoiceAddPaymentBtn,
                         prefixIcon: const Icon(
                           CupertinoIcons.money_dollar_circle,
                         ),
@@ -256,43 +259,49 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                       ),
                     ),
                   const SizedBox(height: AppSpacing.md),
-                  _InfoRow(label: 'Customer', value: _invoice.customerName),
+                  _InfoRow(label: l10n.commonCustomer, value: _invoice.customerName),
                   const SizedBox(height: AppSpacing.sm),
                   _InfoRow(
-                    label: 'Date',
+                    label: l10n.commonDate,
                     value: _formatDate(_invoice.createdAt),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   _InfoRow(
-                    label: 'Items Count',
+                    label: l10n.invoiceItemsCount,
                     value: '${_invoice.items.length}',
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   _InfoRow(
-                    label: 'Total Amount',
+                    label: l10n.commonTotal,
                     value: _formatAmount(_invoice.totalAmount),
                     valueStyle: textStyles.amountMedium,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   _InfoRow(
-                    label: 'Status',
-                    value: InvoiceStatus.label(_invoice.status),
+                    label: l10n.commonStatus,
+                    value: InvoiceStatus.localizedLabel(_invoice.status, l10n),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   _InfoRow(
-                    label: 'Paid Amount',
+                    label: l10n.commonPaid,
                     value: _formatAmount(_invoice.paidAmount),
+                    valueStyle: textStyles.amountSmall,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   _InfoRow(
-                    label: 'Remaining Amount',
+                    label: l10n.commonRemaining,
                     value: _formatAmount(_invoice.remainingAmount),
+                    valueStyle: textStyles.amountMedium.copyWith(
+                    color: _invoice.remainingAmount > 0
+                          ? palette.success
+                          : palette.danger,
+                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
-            Text('Invoice Items', style: textStyles.title3),
+            Text(AppLocalizations.of(context)!.invoiceItemsTitle, style: textStyles.title3),
             const SizedBox(height: AppSpacing.md),
             ..._invoice.items.map(
               (item) => Padding(
@@ -310,16 +319,17 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                     children: [
                       Text(item.productName, style: textStyles.title3),
                       const SizedBox(height: AppSpacing.sm),
-                      _InfoRow(label: 'Quantity', value: '${item.quantity}'),
-                      const SizedBox(height: AppSpacing.xs),
+                      _InfoRow(label: l10n.commonQuantity, value: '${item.quantity}'),
+                      const SizedBox(height: AppSpacing.sm),
                       _InfoRow(
-                        label: 'Unit Price',
+                        label: l10n.commonUnitPrice,
                         value: _formatAmount(item.unitPrice),
                       ),
-                      const SizedBox(height: AppSpacing.xs),
+                      const SizedBox(height: AppSpacing.sm),
                       _InfoRow(
-                        label: 'Line Total',
+                        label: l10n.invoiceLineTotal,
                         value: _formatAmount(item.lineTotal),
+                        valueStyle: textStyles.amountSmall,
                       ),
                     ],
                   ),
@@ -337,7 +347,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
               ),
               child: Row(
                 children: [
-                  Text('Grand Total', style: textStyles.title3),
+                  Text(AppLocalizations.of(context)!.invoiceGrandTotal, style: textStyles.title3),
                   const Spacer(),
                   Text(
                     _formatAmount(_invoice.totalAmount),
@@ -347,7 +357,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
-            Text('Payment History', style: textStyles.title3),
+            Text(AppLocalizations.of(context)!.invoicePaymentHistory, style: textStyles.title3),
             const SizedBox(height: AppSpacing.md),
             if (_payments.isEmpty)
               Container(
@@ -359,7 +369,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                   border: Border.all(color: palette.border),
                 ),
                 child: Text(
-                  'No payments yet',
+                  l10n.invoiceNoPaymentsYet,
                   style: textStyles.body.copyWith(color: palette.textSecondary),
                 ),
               )
@@ -400,9 +410,10 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                                   const SizedBox(width: AppSpacing.md),
                                   Expanded(
                                     child: Text(
-                                      payment.method
-                                          .replaceAll('_', ' ')
-                                          .toUpperCase(),
+                                      PaymentMethod.localizedLabel(
+                                        payment.method,
+                                        l10n,
+                                      ),
                                       style: textStyles.bodyMedium,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -411,11 +422,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                                 ],
                               ),
                               const SizedBox(height: AppSpacing.sm),
-                              Text(
-                                payment.note.isEmpty ? 'No note' : payment.note,
-                                style: textStyles.caption.copyWith(
-                                  color: palette.textSecondary,
-                                ),
+                              _InfoRow(
+                                label: l10n.paymentNoteLabel,
+                                value: payment.note.isEmpty ? l10n.commonNoNote : payment.note,
                               ),
                               const SizedBox(height: AppSpacing.sm),
                               Row(
@@ -461,9 +470,10 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    payment.method
-                                        .replaceAll('_', ' ')
-                                        .toUpperCase(),
+                                    PaymentMethod.localizedLabel(
+                                      payment.method,
+                                      l10n,
+                                    ),
                                     style: textStyles.bodyMedium,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -471,7 +481,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     payment.note.isEmpty
-                                        ? 'No note'
+                                        ? l10n.commonNoNote
                                         : payment.note,
                                     style: textStyles.caption.copyWith(
                                       color: palette.textSecondary,

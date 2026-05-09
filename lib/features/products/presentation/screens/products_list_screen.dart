@@ -22,10 +22,10 @@ class ProductsListScreen extends StatefulWidget {
   const ProductsListScreen({super.key});
 
   @override
-  State<ProductsListScreen> createState() => _ProductsListScreenState();
+  State<ProductsListScreen> createState() => ProductsListScreenState();
 }
 
-class _ProductsListScreenState extends State<ProductsListScreen> {
+class ProductsListScreenState extends State<ProductsListScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ProductLocalDataSource _localDataSource = ProductLocalDataSource();
 
@@ -45,10 +45,10 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadProducts();
+    loadProducts();
   }
 
-  Future<void> _loadProducts() async {
+  Future<void> loadProducts() async {
     setState(() => _isLoading = true);
 
     final products = await _localDataSource.getAllProducts();
@@ -96,7 +96,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
 
     await _localDataSource.insertProduct(ProductModel.fromEntity(result));
 
-    await _loadProducts();
+    await loadProducts();
 
     if (!mounted) return;
     _showMessage(l10n.productCreatedMessage(result.name));
@@ -113,7 +113,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
 
     await _localDataSource.updateProduct(ProductModel.fromEntity(updated));
 
-    await _loadProducts();
+    await loadProducts();
 
     if (!mounted) return;
     _showMessage(l10n.productUpdatedMessage(updated.name));
@@ -130,10 +130,10 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
 
     await _localDataSource.deleteProduct(product.id);
 
-    await _loadProducts();
+    await loadProducts();
 
     if (!mounted) return;
-    _showMessage(l10n.productUpdatedMessage(product.name));
+    _showMessage(l10n.productDeleted);
   }
 
   @override
@@ -168,7 +168,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
       title: l10n.productsTitle,
       useLargeTitle: true,
       trailing: IconButton(
-        onPressed: _loadProducts,
+        onPressed: loadProducts,
         icon: Icon(CupertinoIcons.refresh, color: palette.iconPrimary),
       ),
       child: _isLoading

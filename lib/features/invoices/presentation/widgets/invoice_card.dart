@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/constants/invoice_status.dart';
 import '../../domain/entities/invoice_entity.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
 class InvoiceCard extends StatelessWidget {
   final InvoiceEntity invoice;
@@ -87,7 +89,7 @@ class InvoiceCard extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Invoice #$invoiceRef',
+                      AppLocalizations.of(context)!.invoiceRefTitle(invoiceRef),
                       style: textStyles.title3.copyWith(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
@@ -139,7 +141,7 @@ class InvoiceCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      InvoiceStatus.label(invoice.status),
+                      InvoiceStatus.localizedLabel(invoice.status, AppLocalizations.of(context)!),
                       style: textStyles.caption.copyWith(
                         color: statusColor,
                         fontWeight: FontWeight.w600,
@@ -151,8 +153,8 @@ class InvoiceCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   _RightAlignedAmount(
-                    label: 'Total',
-                    value: '\$${invoice.totalAmount.toStringAsFixed(2)}',
+                    label: AppLocalizations.of(context)!.commonTotal,
+                    value: CurrencyFormatter.format(invoice.totalAmount, AppLocalizations.of(context)!),
                   ),
                 ],
               ),
@@ -161,13 +163,13 @@ class InvoiceCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _LeftInlineAmount(
-                    label: 'Paid',
-                    value: '\$${invoice.paidAmount.toStringAsFixed(2)}',
+                    label: AppLocalizations.of(context)!.commonPaid,
+                    value: CurrencyFormatter.format(invoice.paidAmount, AppLocalizations.of(context)!),
                   ),
                   const Spacer(),
                   _RightAlignedAmount(
-                    label: 'Remaining',
-                    value: '\$${invoice.remainingAmount.toStringAsFixed(2)}',
+                    label: AppLocalizations.of(context)!.commonRemaining,
+                    value: CurrencyFormatter.format(invoice.remainingAmount, AppLocalizations.of(context)!),
                   ),
                 ],
               ),

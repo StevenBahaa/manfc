@@ -6,10 +6,11 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_text_styles.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
 class AppSearchField extends StatefulWidget {
   final TextEditingController? controller;
-  final String hintText;
+  final String? hintText;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final Duration debounceDuration;
@@ -21,7 +22,7 @@ class AppSearchField extends StatefulWidget {
   const AppSearchField({
     super.key,
     this.controller,
-    this.hintText = 'Search',
+    this.hintText,
     this.onChanged,
     this.onSubmitted,
     this.debounceDuration = const Duration(milliseconds: 300),
@@ -114,7 +115,7 @@ class _AppSearchFieldState extends State<AppSearchField> {
               cursorColor: palette.primary,
               decoration: InputDecoration(
                 isDense: true,
-                hintText: widget.hintText,
+                hintText: widget.hintText ?? AppLocalizations.of(context)!.commonSearch,
                 hintStyle: textStyles.body.copyWith(
                   color: palette.textTertiary,
                 ),

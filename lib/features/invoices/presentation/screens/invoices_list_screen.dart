@@ -10,6 +10,7 @@ import '../../../../app/widgets/app_primary_button.dart';
 import '../../../../app/widgets/app_scaffold.dart';
 import '../../../../app/widgets/app_search_field.dart';
 import '../../../../app/widgets/app_stat_card.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../customers/data/datasources/customer_local_datasource.dart';
 import '../../../customers/domain/entities/customer_entity.dart';
 import '../../../products/data/datasources/product_local_datasource.dart';
@@ -22,6 +23,7 @@ import '../widgets/delete_invoice_dialog.dart';
 import '../widgets/invoice_card.dart';
 import 'invoice_details_screen.dart';
 import 'invoice_form_screen.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
 enum InvoiceListFilter { all, outstanding, paid, cancelled }
 
@@ -29,10 +31,10 @@ class InvoicesListScreen extends StatefulWidget {
   const InvoicesListScreen({super.key});
 
   @override
-  State<InvoicesListScreen> createState() => _InvoicesListScreenState();
+  State<InvoicesListScreen> createState() => InvoicesListScreenState();
 }
 
-class _InvoicesListScreenState extends State<InvoicesListScreen> {
+class InvoicesListScreenState extends State<InvoicesListScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   final InvoiceLocalDataSource _invoiceLocalDataSource =
@@ -86,10 +88,10 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadInvoices();
+    loadInvoices();
   }
 
-  Future<void> _loadInvoices() async {
+  Future<void> loadInvoices() async {
     setState(() => _isLoading = true);
 
     final invoices = await _invoiceLocalDataSource.getAllInvoices();
@@ -134,13 +136,14 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
 
     if (!mounted) return;
 
+    final l10n = AppLocalizations.of(context)!;
     if (customers.isEmpty) {
-      _showMessage('Please create at least one customer first');
+      _showMessage(l10n.errorCreateCustomerFirst);
       return;
     }
 
     if (products.isEmpty) {
-      _showMessage('Please create at least one product first');
+      _showMessage(l10n.errorCreateProductFirst);
       return;
     }
 
@@ -167,10 +170,10 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
       ),
     );
 
-    await _loadInvoices();
+    await loadInvoices();
 
     if (!mounted) return;
-    _showMessage('Invoice created');
+    _showMessage(l10n.invoiceCreatedMessage);
   }
 
   Future<void> _confirmDeleteInvoice(InvoiceEntity invoice) async {
@@ -186,10 +189,10 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
     if (confirmed != true) return;
 
     await _invoiceLocalDataSource.deleteInvoice(invoice.id);
-    await _loadInvoices();
+    await loadInvoices();
 
     if (!mounted) return;
-    _showMessage('Invoice deleted');
+    _showMessage(AppLocalizations.of(context)!.invoiceDeletedMessage);
   }
 
   @override
@@ -204,6 +207,7 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
         ? AppColors.dark
         : AppColors.light;
 
+    final l10n = AppLocalizations.of(context)!;
     final textStyles = AppTextStyles.create(
       primaryText: palette.textPrimary,
       secondaryText: palette.textSecondary,
@@ -218,10 +222,10 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
     );
 
     return AppScaffold(
-      title: 'Invoices',
+      title: AppLocalizations.of(context)!.dashboardInvoices,
       useLargeTitle: true,
       trailing: IconButton(
-        onPressed: _loadInvoices,
+        onPressed: loadInvoices,
         icon: Icon(CupertinoIcons.refresh, color: palette.iconPrimary),
       ),
       child: _isLoading
@@ -233,7 +237,7 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                 children: [
                   AppSearchField(
                     controller: _searchController,
-                    hintText: 'Search invoices',
+                    hintText: l10n.invoicesSearchHint,
                     onChanged: _onSearchChanged,
                     onClear: () {
                       _searchController.clear();
@@ -245,9 +249,9 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                     children: [
                       Expanded(
                         child: AppStatCard(
-                          title: 'Total Invoices',
+                          title: l10n.invoicesTotalTitle,
                           value: '${_allInvoices.length}',
-                          subtitle: 'Saved locally',
+                          subtitle: l10n.invoicesTotalSubtitle,
                           icon: CupertinoIcons.doc_text_fill,
                           tone: AppStatCardTone.blue,
                           compact: true,
@@ -256,9 +260,9 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: AppStatCard(
-                          title: 'Total Revenue',
-                          value: '\$${totalRevenue.toStringAsFixed(0)}',
-                          subtitle: 'All invoices total',
+                          title: l10n.invoicesRevenueTitle,
+                          value: CurrencyFormatter.formatCompact(totalRevenue, l10n),
+                          subtitle: l10n.invoicesRevenueSubtitle,
                           icon: CupertinoIcons.money_dollar_circle_fill,
                           tone: AppStatCardTone.green,
                           compact: true,
@@ -268,7 +272,7 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   AppPrimaryButton(
-                    text: 'Create Invoice',
+                    text: l10n.invoicesCreateBtn,
                     prefixIcon: const Icon(CupertinoIcons.add),
                     onPressed: _openCreateInvoiceDialog,
                   ),
@@ -278,7 +282,7 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                     child: Row(
                       children: [
                         _FilterChipItem(
-                          label: 'All',
+                          label: l10n.invoiceFilterAll,
                           isSelected: _selectedFilter == InvoiceListFilter.all,
                           onTap: () {
                             setState(() {
@@ -288,7 +292,7 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         _FilterChipItem(
-                          label: 'Outstanding',
+                          label: l10n.invoiceFilterOutstanding,
                           isSelected:
                               _selectedFilter == InvoiceListFilter.outstanding,
                           onTap: () {
@@ -299,7 +303,7 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         _FilterChipItem(
-                          label: 'Paid',
+                          label: l10n.invoiceFilterPaid,
                           isSelected: _selectedFilter == InvoiceListFilter.paid,
                           onTap: () {
                             setState(() {
@@ -309,7 +313,7 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         _FilterChipItem(
-                          label: 'Cancelled',
+                          label: l10n.invoiceFilterCancelled,
                           isSelected:
                               _selectedFilter == InvoiceListFilter.cancelled,
                           onTap: () {
@@ -334,16 +338,15 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                       children: [
                         Expanded(
                           child: _InvoicesSummaryItem(
-                            title: 'Visible Invoices',
+                            title: l10n.invoicesVisibleTitle,
                             value: '${invoices.length}',
                           ),
                         ),
                         Container(width: 1, height: 42, color: palette.border),
                         Expanded(
                           child: _InvoicesSummaryItem(
-                            title: 'Outstanding',
-                            value:
-                                '\$${_filteredOutstandingTotal.toStringAsFixed(2)}',
+                            title: l10n.invoicesOutstandingTitle,
+                            value: CurrencyFormatter.format(_filteredOutstandingTotal, l10n),
                           ),
                         ),
                       ],
@@ -352,10 +355,10 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                   const SizedBox(height: AppSpacing.xl),
                   Row(
                     children: [
-                      Text('All Invoices', style: textStyles.title3),
+                      Text(AppLocalizations.of(context)!.invoicesAllInvoices, style: textStyles.title3),
                       const Spacer(),
                       Text(
-                        '${invoices.length} item${invoices.length == 1 ? '' : 's'}',
+                        l10n.commonItemsCount(invoices.length),
                         style: textStyles.footnote.copyWith(
                           color: palette.textSecondary,
                         ),
@@ -366,12 +369,12 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                   if (invoices.isEmpty)
                     AppEmptyState(
                       icon: CupertinoIcons.doc_text,
-                      title: 'No invoices found',
+                      title: l10n.invoicesEmptyTitle,
                       subtitle: _allInvoices.isEmpty
-                          ? 'Create your first invoice to start tracking sales and payments.'
-                          : 'No invoices match the current search or selected filters.',
+                          ? l10n.invoicesEmptySubtitleNew
+                          : l10n.invoicesEmptySubtitleSearch,
                       actionLabel: _allInvoices.isEmpty
-                          ? 'Create Invoice'
+                          ? l10n.invoicesCreateBtn
                           : null,
                       onActionTap: _allInvoices.isEmpty
                           ? _openCreateInvoiceDialog
@@ -406,7 +409,7 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                               ),
                             );
 
-                            await _loadInvoices();
+                            await loadInvoices();
                           },
                           onDelete: () => _confirmDeleteInvoice(invoice),
                         );

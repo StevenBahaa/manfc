@@ -11,6 +11,7 @@ import '../../../products/domain/entities/product_entity.dart';
 import '../../domain/constants/invoice_status.dart';
 import '../../domain/entities/invoice_entity.dart';
 import '../../domain/entities/invoice_item_entity.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
 class InvoiceFormScreen extends StatefulWidget {
   final List<CustomerEntity> customers;
@@ -34,10 +35,12 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   CustomerEntity? _selectedCustomer;
   late final List<_InvoiceLineInput> _lines;
   bool _isSaving = false;
+  late DateTime _selectedDate;
 
   @override
   void initState() {
     super.initState();
+    _selectedDate = widget.initialInvoice?.createdAt ?? DateTime.now();
 
     if (widget.initialInvoice != null) {
       final invoice = widget.initialInvoice!;
@@ -97,11 +100,59 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     );
   }
 
+  Future<void> _pickDate() async {
+    final initialDate = _selectedDate;
+    DateTime? pickedDate;
+
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      await showCupertinoModalPopup<void>(
+        context: context,
+        builder: (BuildContext context) {
+          final palette = Theme.of(context).brightness == Brightness.dark
+              ? AppColors.dark
+              : AppColors.light;
+          return Container(
+            height: 250,
+            color: palette.surface,
+            child: SafeArea(
+              top: false,
+              child: CupertinoDatePicker(
+                initialDateTime: initialDate,
+                mode: CupertinoDatePickerMode.date,
+                onDateTimeChanged: (DateTime newDate) {
+                  pickedDate = newDate;
+                },
+              ),
+            ),
+          );
+        },
+      );
+      if (pickedDate != null) {
+        setState(() {
+          _selectedDate = pickedDate!;
+        });
+      }
+    } else {
+      pickedDate = await showDatePicker(
+        context: context,
+        initialDate: initialDate,
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2100),
+      );
+      if (pickedDate != null) {
+        setState(() {
+          _selectedDate = pickedDate!;
+        });
+      }
+    }
+  }
+
   Future<void> _save() async {
     FocusScope.of(context).unfocus();
 
     if (_selectedCustomer == null) {
-      _showError('Please select a customer');
+      final l10n = AppLocalizations.of(context)!;
+      _showError(l10n.errorSelectCustomer);
       return;
     }
 
@@ -111,7 +162,8 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     }).toList();
 
     if (validLines.isEmpty) {
-      _showError('Add at least one valid invoice item');
+      final l10n = AppLocalizations.of(context)!;
+      _showError(l10n.errorAddInvoiceItem);
       return;
     }
 
@@ -152,7 +204,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
       paidAmount: paidAmount,
       remainingAmount: remainingAmount,
       status: status,
-      createdAt: widget.initialInvoice?.createdAt ?? DateTime.now(),
+      createdAt: _selectedDate,
       items: items,
     );
 
@@ -184,8 +236,9 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
       buttonText: palette.textOnPrimary,
     );
 
+    final l10n = AppLocalizations.of(context)!;
     return AppScaffold(
-      title: widget.isEditMode ? 'Edit Invoice' : 'Create Invoice',
+      title: widget.isEditMode ? l10n.invoiceEditTitle : l10n.invoicesCreateBtn,
       useLargeTitle: false,
       child: SingleChildScrollView(
         child: Column(
@@ -194,7 +247,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
             const SizedBox(height: AppSpacing.lg),
             DropdownButtonFormField<CustomerEntity>(
               value: _selectedCustomer,
-              decoration: const InputDecoration(labelText: 'Customer'),
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.invoiceFormCustomer),
               items: widget.customers
                   .map(
                     (customer) => DropdownMenuItem(
@@ -210,14 +263,31 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
               },
             ),
             const SizedBox(height: AppSpacing.lg),
+            InkWell(
+              onTap: _pickDate,
+              borderRadius: BorderRadius.circular(12),
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.invoiceDateLabel,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}', style: textStyles.body),
+                    Icon(CupertinoIcons.calendar, color: palette.iconSecondary),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
-                Text('Items', style: textStyles.title3),
+                Text(AppLocalizations.of(context)!.invoiceFormItems, style: textStyles.title3),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: _addLine,
                   icon: const Icon(CupertinoIcons.add),
-                  label: const Text('Add Item'),
+                  label: Text(AppLocalizations.of(context)!.invoiceFormAddItem),
                 ),
               ],
             ),
@@ -238,7 +308,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
                     children: [
                       DropdownButtonFormField<ProductEntity>(
                         value: line.product,
-                        decoration: const InputDecoration(labelText: 'Product'),
+                        decoration: InputDecoration(labelText: AppLocalizations.of(context)!.invoiceFormProduct),
                         items: widget.products
                             .map(
                               (product) => DropdownMenuItem(
@@ -262,8 +332,8 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
                             child: TextFormField(
                               controller: line.qtyController,
                               keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Quantity',
+                              decoration: InputDecoration(
+                                labelText: AppLocalizations.of(context)!.invoiceFormQuantity,
                               ),
                               onChanged: (_) => setState(() {}),
                             ),
@@ -291,7 +361,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
               ),
               child: Row(
                 children: [
-                  Text('Invoice Total', style: textStyles.title3),
+                  Text(AppLocalizations.of(context)!.invoiceFormTotal, style: textStyles.title3),
                   const Spacer(),
                   Text(
                     '\$${_total.toStringAsFixed(2)}',
@@ -302,7 +372,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
             ),
             const SizedBox(height: AppSpacing.xl),
             AppPrimaryButton(
-              text: widget.isEditMode ? 'Save Changes' : 'Create Invoice',
+              text: widget.isEditMode ? l10n.commonSaveChanges : l10n.invoicesCreateBtn,
               isLoading: _isSaving,
               prefixIcon: Icon(
                 widget.isEditMode

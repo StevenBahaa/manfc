@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       builder: (context, _) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Factory Sales App',
+          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
           theme: ThemeData.light(),
           darkTheme: ThemeData.dark(),
           themeMode: appSettingsController.themeMode,
