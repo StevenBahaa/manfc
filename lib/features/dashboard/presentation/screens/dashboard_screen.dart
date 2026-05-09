@@ -45,10 +45,6 @@ class DashboardScreen extends ConsumerWidget {
     return AppScaffold(
       title: l10n.dashboardOverviewTitle,
       useLargeTitle: true,
-      trailing: IconButton(
-        onPressed: () => ref.invalidate(dashboardDataProvider),
-        icon: Icon(CupertinoIcons.refresh, color: palette.iconPrimary),
-      ),
       child: dashboardAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),

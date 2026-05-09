@@ -143,10 +143,6 @@ class ProductsListScreenState extends ConsumerState<ProductsListScreen> {
     return AppScaffold(
       title: l10n.productsTitle,
       useLargeTitle: true,
-      trailing: IconButton(
-        onPressed: loadProducts,
-        icon: Icon(CupertinoIcons.refresh, color: palette.iconPrimary),
-      ),
       child: productsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),

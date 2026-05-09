@@ -147,10 +147,6 @@ class CustomersListScreenState extends ConsumerState<CustomersListScreen> {
     return AppScaffold(
       title: l10n.dashboardCustomers,
       useLargeTitle: true,
-      trailing: IconButton(
-        onPressed: loadCustomers,
-        icon: Icon(CupertinoIcons.refresh, color: palette.iconPrimary),
-      ),
       child: customersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
