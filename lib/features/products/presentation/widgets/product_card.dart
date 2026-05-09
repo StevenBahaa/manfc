@@ -6,6 +6,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/product_entity.dart';
 
 class ProductCard extends StatelessWidget {
@@ -22,11 +23,11 @@ class ProductCard extends StatelessWidget {
     this.onDelete,
   });
 
-  String _formatPrice(double value) {
+  String _formatPrice(double value, AppLocalizations l10n) {
     if (value == value.roundToDouble()) {
-      return '\$${value.toStringAsFixed(0)}';
+      return CurrencyFormatter.formatCompact(value, l10n);
     }
-    return '\$${value.toStringAsFixed(2)}';
+    return CurrencyFormatter.format(value, l10n);
   }
 
   @override
@@ -117,7 +118,7 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              Text(_formatPrice(product.price), style: textStyles.amountMedium),
+              Text(_formatPrice(product.price, l10n), style: textStyles.amountMedium),
             ],
           ),
         ),

@@ -60,13 +60,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
 
   String? _validatePrice(String? value) {
     final l10n = AppLocalizations.of(context)!;
-
     final text = value?.trim() ?? '';
-
-    if (text.isEmpty) {
-      return 'Price is required';
-    }
-
     final parsed = double.tryParse(text);
 
     if (text.isEmpty) return l10n.productPriceRequired;

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manfc/app/widgets/app_primary_button.dart';
 import 'package:manfc/features/payments/domain/utils/invoice_payment_calculator.dart';
 
@@ -7,64 +8,40 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/widgets/app_scaffold.dart';
-import '../../../customers/data/datasources/customer_local_datasource.dart';
-import '../../../customers/domain/entities/customer_entity.dart';
-import '../../../products/data/datasources/product_local_datasource.dart';
-import '../../../products/domain/entities/product_entity.dart';
-import '../../data/datasources/invoice_local_datasource.dart';
+import '../../../customers/presentation/providers/customer_providers.dart';
+import '../../../products/presentation/providers/product_providers.dart';
 import '../../data/models/invoice_item_model.dart';
 import '../../data/models/invoice_model.dart';
 import '../../domain/entities/invoice_entity.dart';
 import 'invoice_form_screen.dart';
 import '../../domain/constants/invoice_status.dart';
-import '../../../payments/data/datasources/payment_local_data_source.dart';
 import '../../../payments/data/models/payment_model.dart';
 import '../../../payments/domain/entities/payment_entity.dart';
 import '../../../payments/presentation/widgets/add_payment_sheet.dart';
+import '../../../payments/domain/constants/payment_method.dart';
+import '../providers/invoice_providers.dart';
+import '../../../payments/presentation/providers/payment_providers.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
-class InvoiceDetailsScreen extends StatefulWidget {
+class InvoiceDetailsScreen extends ConsumerStatefulWidget {
   final InvoiceEntity invoice;
 
   const InvoiceDetailsScreen({super.key, required this.invoice});
 
   @override
-  State<InvoiceDetailsScreen> createState() => _InvoiceDetailsScreenState();
+  ConsumerState<InvoiceDetailsScreen> createState() => _InvoiceDetailsScreenState();
 }
 
-class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
-  late InvoiceEntity _invoice;
-  List<PaymentModel> _payments = [];
-
-  final PaymentLocalDataSource _paymentLocalDataSource =
-      PaymentLocalDataSource.instance;
-
-  final InvoiceLocalDataSource _invoiceLocalDataSource =
-      InvoiceLocalDataSource();
-  final CustomerLocalDataSource _customerLocalDataSource =
-      CustomerLocalDataSource();
-  final ProductLocalDataSource _productLocalDataSource =
-      ProductLocalDataSource();
-
+class _InvoiceDetailsScreenState extends ConsumerState<InvoiceDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _invoice = widget.invoice;
-    _loadPayments();
   }
 
-  Future<void> _loadPayments() async {
-    _payments = await _paymentLocalDataSource.getPaymentsByInvoiceId(
-      _invoice.id,
-    );
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future<void> _addPayment() async {
-    if (_invoice.status == 'paid' ||
-        _invoice.status == 'cancelled' ||
-        _invoice.status == 'draft') {
+  Future<void> _addPayment(InvoiceEntity invoice) async {
+    if (invoice.status == 'paid' ||
+        invoice.status == 'cancelled' ||
+        invoice.status == 'draft') {
       return;
     }
 
@@ -80,50 +57,49 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (_) => AddPaymentSheet(
-        invoiceId: _invoice.id,
-        customerId: _invoice.customerId,
-        remainingAmount: _invoice.remainingAmount,
+        invoiceId: invoice.id,
+        customerId: invoice.customerId,
+        remainingAmount: invoice.remainingAmount,
       ),
     );
 
     if (payment == null) return;
 
-    await _paymentLocalDataSource.insertPayment(
+    final paymentRepository = ref.read(paymentRepositoryProvider);
+    await paymentRepository.savePayment(
       PaymentModel.fromEntity(payment),
     );
 
-    final totalPaid = await _paymentLocalDataSource.getTotalPaidForInvoice(
-      _invoice.id,
-    );
+    final allPayments = await paymentRepository.getAllPayments();
+    final invoicePayments = allPayments.where((p) => p.invoiceId == invoice.id);
+    final totalPaid = invoicePayments.fold<double>(0, (sum, p) => sum + p.amount);
+
     final remainingAmount = InvoicePaymentCalculator.remainingAmount(
-      totalAmount: _invoice.totalAmount,
+      totalAmount: invoice.totalAmount,
       paidAmount: totalPaid,
     );
     final nextStatus = InvoicePaymentCalculator.status(
-      currentStatus: _invoice.status,
-      totalAmount: _invoice.totalAmount,
+      currentStatus: invoice.status,
+      totalAmount: invoice.totalAmount,
       paidAmount: totalPaid,
     );
 
     final updatedInvoice = InvoiceModel(
-      id: _invoice.id,
-      customerId: _invoice.customerId,
-      customerName: _invoice.customerName,
-      totalAmount: _invoice.totalAmount,
+      id: invoice.id,
+      customerId: invoice.customerId,
+      customerName: invoice.customerName,
+      totalAmount: invoice.totalAmount,
       paidAmount: totalPaid,
       remainingAmount: remainingAmount,
       status: nextStatus,
-      createdAt: _invoice.createdAt,
-      items: _invoice.items.map(InvoiceItemModel.fromEntity).toList(),
+      createdAt: invoice.createdAt,
+      items: invoice.items.map(InvoiceItemModel.fromEntity).toList(),
     );
 
-    await _invoiceLocalDataSource.updateInvoice(updatedInvoice);
+    await ref.read(invoiceRepositoryProvider).saveInvoice(updatedInvoice);
 
-    setState(() {
-      _invoice = updatedInvoice;
-    });
-
-    await _loadPayments();
+    ref.invalidate(invoicesProvider);
+    ref.invalidate(paymentsProvider);
   }
 
   String _formatAmount(double value) {
@@ -137,11 +113,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
     return '$day/$month/$year';
   }
 
-  Future<void> _editInvoice() async {
-    final List<CustomerEntity> customers = await _customerLocalDataSource
-        .getAllCustomers();
-    final List<ProductEntity> products = await _productLocalDataSource
-        .getAllProducts();
+  Future<void> _editInvoice(InvoiceEntity invoice) async {
+    final customers = await ref.read(customersProvider.future);
+    final products = await ref.read(productsProvider.future);
 
     if (!mounted) return;
 
@@ -150,14 +124,15 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
         builder: (_) => InvoiceFormScreen(
           customers: customers,
           products: products,
-          initialInvoice: _invoice,
+          initialInvoice: invoice,
         ),
       ),
     );
 
     if (updated == null) return;
 
-    await _invoiceLocalDataSource.updateInvoice(
+    final repository = ref.read(invoiceRepositoryProvider);
+    await repository.saveInvoice(
       InvoiceModel(
         id: updated.id,
         customerId: updated.customerId,
@@ -171,15 +146,13 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
       ),
     );
 
+    ref.invalidate(invoicesProvider);
+
     if (!mounted) return;
 
-    setState(() {
-      _invoice = updated;
-    });
-
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Invoice updated'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.invoiceUpdatedMessage),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -198,322 +171,354 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
       buttonText: palette.textOnPrimary,
     );
 
-    final invoiceRef = _invoice.id.length >= 6
-        ? _invoice.id.substring(_invoice.id.length - 6)
-        : _invoice.id;
+    final l10n = AppLocalizations.of(context)!;
+    
+    final invoicesAsync = ref.watch(invoicesProvider);
+    final paymentsAsync = ref.watch(paymentsProvider);
 
-    return AppScaffold(
-      title: 'Invoice Details',
-      useLargeTitle: false,
-      trailing: IconButton(
-        onPressed: _editInvoice,
-        icon: Icon(CupertinoIcons.pencil, color: palette.iconPrimary),
-      ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(
-          left: AppSpacing.cardPadding,
-          right: AppSpacing.cardPadding,
-          top: AppSpacing.lg,
-          bottom: AppSpacing.xl,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: AppSpacing.lg),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.cardPadding),
-              decoration: BoxDecoration(
-                color: palette.surface,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: palette.border, width: 1),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Invoice #$invoiceRef',
-                          style: textStyles.title2,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  if (_invoice.status != 'paid' &&
-                      _invoice.status != 'cancelled' &&
-                      _invoice.status != 'draft')
-                    SizedBox(
-                      width: double.infinity,
-                      child: AppPrimaryButton(
-                        text: 'Add Payment',
-                        prefixIcon: const Icon(
-                          CupertinoIcons.money_dollar_circle,
-                        ),
-                        onPressed: _addPayment,
-                      ),
-                    ),
-                  const SizedBox(height: AppSpacing.md),
-                  _InfoRow(label: 'Customer', value: _invoice.customerName),
-                  const SizedBox(height: AppSpacing.sm),
-                  _InfoRow(
-                    label: 'Date',
-                    value: _formatDate(_invoice.createdAt),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  _InfoRow(
-                    label: 'Items Count',
-                    value: '${_invoice.items.length}',
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  _InfoRow(
-                    label: 'Total Amount',
-                    value: _formatAmount(_invoice.totalAmount),
-                    valueStyle: textStyles.amountMedium,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  _InfoRow(
-                    label: 'Status',
-                    value: InvoiceStatus.label(_invoice.status),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  _InfoRow(
-                    label: 'Paid Amount',
-                    value: _formatAmount(_invoice.paidAmount),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  _InfoRow(
-                    label: 'Remaining Amount',
-                    value: _formatAmount(_invoice.remainingAmount),
-                  ),
-                ],
-              ),
+    return invoicesAsync.when(
+      loading: () => const AppScaffold(title: '', child: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => AppScaffold(title: 'Error', child: Center(child: Text('Error: $err'))),
+      data: (allInvoices) {
+        final currentInvoice = allInvoices.firstWhere(
+          (i) => i.id == widget.invoice.id,
+          orElse: () => widget.invoice as InvoiceModel,
+        );
+
+        final invoiceRef = currentInvoice.id.length >= 6
+            ? currentInvoice.id.substring(currentInvoice.id.length - 6)
+            : currentInvoice.id;
+
+        return AppScaffold(
+          title: l10n.invoiceDetailsTitle,
+          useLargeTitle: false,
+          trailing: IconButton(
+            onPressed: () => _editInvoice(currentInvoice),
+            icon: Icon(CupertinoIcons.pencil, color: palette.iconPrimary),
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(
+              left: AppSpacing.cardPadding,
+              right: AppSpacing.cardPadding,
+              top: AppSpacing.lg,
+              bottom: AppSpacing.xl,
             ),
-            const SizedBox(height: AppSpacing.xl),
-            Text('Invoice Items', style: textStyles.title3),
-            const SizedBox(height: AppSpacing.md),
-            ..._invoice.items.map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: AppSpacing.lg),
+                Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(AppSpacing.cardPadding),
                   decoration: BoxDecoration(
                     color: palette.surface,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(22),
                     border: Border.all(color: palette.border, width: 1),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.productName, style: textStyles.title3),
-                      const SizedBox(height: AppSpacing.sm),
-                      _InfoRow(label: 'Quantity', value: '${item.quantity}'),
-                      const SizedBox(height: AppSpacing.xs),
-                      _InfoRow(
-                        label: 'Unit Price',
-                        value: _formatAmount(item.unitPrice),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l10n.invoiceRefTitle(invoiceRef),
+                              style: textStyles.title2,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: AppSpacing.xs),
+                      const SizedBox(height: AppSpacing.md),
+                      if (currentInvoice.status != 'paid' &&
+                          currentInvoice.status != 'cancelled' &&
+                          currentInvoice.status != 'draft')
+                        SizedBox(
+                          width: double.infinity,
+                          child: AppPrimaryButton(
+                            text: l10n.invoiceAddPaymentBtn,
+                            prefixIcon: const Icon(
+                              CupertinoIcons.money_dollar_circle,
+                            ),
+                            onPressed: () => _addPayment(currentInvoice),
+                          ),
+                        ),
+                      const SizedBox(height: AppSpacing.md),
+                      _InfoRow(label: l10n.commonCustomer, value: currentInvoice.customerName),
+                      const SizedBox(height: AppSpacing.sm),
                       _InfoRow(
-                        label: 'Line Total',
-                        value: _formatAmount(item.lineTotal),
+                        label: l10n.commonDate,
+                        value: _formatDate(currentInvoice.createdAt),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _InfoRow(
+                        label: l10n.invoiceItemsCount,
+                        value: '${currentInvoice.items.length}',
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _InfoRow(
+                        label: l10n.commonTotal,
+                        value: _formatAmount(currentInvoice.totalAmount),
+                        valueStyle: textStyles.amountMedium,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _InfoRow(
+                        label: l10n.commonStatus,
+                        value: InvoiceStatus.localizedLabel(currentInvoice.status, l10n),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _InfoRow(
+                        label: l10n.commonPaid,
+                        value: _formatAmount(currentInvoice.paidAmount),
+                        valueStyle: textStyles.amountSmall,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _InfoRow(
+                        label: l10n.commonRemaining,
+                        value: _formatAmount(currentInvoice.remainingAmount),
+                        valueStyle: textStyles.amountMedium.copyWith(
+                        color: currentInvoice.remainingAmount > 0
+                              ? palette.success
+                              : palette.danger,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.cardPadding),
-              decoration: BoxDecoration(
-                color: palette.surface,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: palette.border, width: 1),
-              ),
-              child: Row(
-                children: [
-                  Text('Grand Total', style: textStyles.title3),
-                  const Spacer(),
-                  Text(
-                    _formatAmount(_invoice.totalAmount),
-                    style: textStyles.amountMedium,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Text('Payment History', style: textStyles.title3),
-            const SizedBox(height: AppSpacing.md),
-            if (_payments.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(AppSpacing.cardPadding),
-                decoration: BoxDecoration(
-                  color: palette.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: palette.border),
-                ),
-                child: Text(
-                  'No payments yet',
-                  style: textStyles.body.copyWith(color: palette.textSecondary),
-                ),
-              )
-            else
-              ..._payments.map(
-                (payment) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(AppSpacing.cardPadding),
-                    decoration: BoxDecoration(
-                      color: palette.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: palette.border),
+                const SizedBox(height: AppSpacing.xl),
+                Text(l10n.invoiceItemsTitle, style: textStyles.title3),
+                const SizedBox(height: AppSpacing.md),
+                ...currentInvoice.items.map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+                      decoration: BoxDecoration(
+                        color: palette.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: palette.border, width: 1),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item.productName, style: textStyles.title3),
+                          const SizedBox(height: AppSpacing.sm),
+                          _InfoRow(label: l10n.commonQuantity, value: '${item.quantity}'),
+                          const SizedBox(height: AppSpacing.sm),
+                          _InfoRow(
+                            label: l10n.commonUnitPrice,
+                            value: _formatAmount(item.unitPrice),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          _InfoRow(
+                            label: l10n.invoiceLineTotal,
+                            value: _formatAmount(item.lineTotal),
+                            valueStyle: textStyles.amountSmall,
+                          ),
+                        ],
+                      ),
                     ),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final isTight = constraints.maxWidth < 360;
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.cardPadding),
+                  decoration: BoxDecoration(
+                    color: palette.surface,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: palette.border, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(l10n.invoiceGrandTotal, style: textStyles.title3),
+                      const Spacer(),
+                      Text(
+                        _formatAmount(currentInvoice.totalAmount),
+                        style: textStyles.amountMedium,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Text(l10n.invoicePaymentHistory, style: textStyles.title3),
+                const SizedBox(height: AppSpacing.md),
+                paymentsAsync.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Text('Error loading payments: $err'),
+                  data: (allPayments) {
+                    final payments = allPayments.where((p) => p.invoiceId == currentInvoice.id).toList();
+                    if (payments.isEmpty) {
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+                        decoration: BoxDecoration(
+                          color: palette.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: palette.border),
+                        ),
+                        child: Text(
+                          l10n.invoiceNoPaymentsYet,
+                          style: textStyles.body.copyWith(color: palette.textSecondary),
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: payments.map(
+                        (payment) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(AppSpacing.cardPadding),
+                            decoration: BoxDecoration(
+                              color: palette.surface,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: palette.border),
+                            ),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isTight = constraints.maxWidth < 360;
 
-                        if (isTight) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: palette.cardBlueSoft,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      CupertinoIcons.money_dollar_circle_fill,
-                                      color: palette.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: AppSpacing.md),
-                                  Expanded(
-                                    child: Text(
-                                      payment.method
-                                          .replaceAll('_', ' ')
-                                          .toUpperCase(),
-                                      style: textStyles.bodyMedium,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              Text(
-                                payment.note.isEmpty ? 'No note' : payment.note,
-                                style: textStyles.caption.copyWith(
-                                  color: palette.textSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      '\$${payment.amount.toStringAsFixed(2)}',
-                                      style: textStyles.bodyMedium.copyWith(
-                                        fontWeight: FontWeight.w700,
+                                if (isTight) {
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: palette.cardBlueSoft,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Icon(
+                                              CupertinoIcons.money_dollar_circle_fill,
+                                              color: palette.primary,
+                                            ),
+                                          ),
+                                          const SizedBox(width: AppSpacing.md),
+                                          Expanded(
+                                            child: Text(
+                                              PaymentMethod.localizedLabel(
+                                                payment.method,
+                                                l10n,
+                                              ),
+                                              style: textStyles.bodyMedium,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: AppSpacing.sm),
+                                      _InfoRow(
+                                        label: l10n.paymentNoteLabel,
+                                        value: payment.note.isEmpty ? l10n.commonNoNote : payment.note,
+                                      ),
+                                      const SizedBox(height: AppSpacing.sm),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              '\$${payment.amount.toStringAsFixed(2)}',
+                                              style: textStyles.bodyMedium.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                          Text(
+                                            '${payment.paymentDate.day}/${payment.paymentDate.month}/${payment.paymentDate.year}',
+                                            style: textStyles.caption.copyWith(
+                                              color: palette.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                return Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: palette.cardBlueSoft,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        CupertinoIcons.money_dollar_circle_fill,
+                                        color: palette.primary,
                                       ),
                                     ),
-                                  ),
-                                  Text(
-                                    '${payment.paymentDate.day}/${payment.paymentDate.month}/${payment.paymentDate.year}',
-                                    style: textStyles.caption.copyWith(
-                                      color: palette.textSecondary,
+                                    const SizedBox(width: AppSpacing.md),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            PaymentMethod.localizedLabel(
+                                              payment.method,
+                                              l10n,
+                                            ),
+                                            style: textStyles.bodyMedium,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            payment.note.isEmpty
+                                                ? l10n.commonNoNote
+                                                : payment.note,
+                                            style: textStyles.caption.copyWith(
+                                              color: palette.textSecondary,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          );
-                        }
-
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: palette.cardBlueSoft,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                CupertinoIcons.money_dollar_circle_fill,
-                                color: palette.primary,
-                              ),
+                                    const SizedBox(width: AppSpacing.md),
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(minWidth: 84),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            '\$${payment.amount.toStringAsFixed(2)}',
+                                            style: textStyles.bodyMedium.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${payment.paymentDate.day}/${payment.paymentDate.month}/${payment.paymentDate.year}',
+                                            style: textStyles.caption.copyWith(
+                                              color: palette.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    payment.method
-                                        .replaceAll('_', ' ')
-                                        .toUpperCase(),
-                                    style: textStyles.bodyMedium,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    payment.note.isEmpty
-                                        ? 'No note'
-                                        : payment.note,
-                                    style: textStyles.caption.copyWith(
-                                      color: palette.textSecondary,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(minWidth: 84),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    '\$${payment.amount.toStringAsFixed(2)}',
-                                    style: textStyles.bodyMedium.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${payment.paymentDate.day}/${payment.paymentDate.month}/${payment.paymentDate.year}',
-                                    style: textStyles.caption.copyWith(
-                                      color: palette.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                          ),
+                        ),
+                      ).toList(),
+                    );
+                  },
                 ),
-              ),
-          ],
-        ),
-      ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

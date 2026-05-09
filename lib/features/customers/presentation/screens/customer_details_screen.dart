@@ -1,87 +1,24 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:manfc/features/invoices/data/datasources/invoice_local_datasource.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
-import '../../../invoices/data/models/invoice_model.dart';
-import '../../../payments/data/datasources/payment_local_data_source.dart';
-import '../../../payments/data/models/payment_model.dart';
+import '../../../invoices/presentation/providers/invoice_providers.dart';
+import '../../../payments/presentation/providers/payment_providers.dart';
+import '../../../invoices/domain/entities/invoice_entity.dart';
+import '../../../payments/domain/entities/payment_entity.dart';
 import '../../domain/entities/customer_entity.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
-class CustomerDetailsScreen extends StatefulWidget {
+class CustomerDetailsScreen extends ConsumerWidget {
   final CustomerEntity customer;
 
   const CustomerDetailsScreen({super.key, required this.customer});
 
   @override
-  State<CustomerDetailsScreen> createState() => _CustomerDetailsScreenState();
-}
-
-class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
-  final InvoiceLocalDataSource _invoiceLocalDataSource =
-      InvoiceLocalDataSource();
-  final PaymentLocalDataSource _paymentLocalDataSource =
-      PaymentLocalDataSource.instance;
-
-  bool _isLoading = true;
-  List<InvoiceModel> _invoices = [];
-  List<PaymentModel> _payments = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-
-    final invoices = await _invoiceLocalDataSource.getInvoicesByCustomerId(
-      widget.customer.id,
-    );
-    final payments = await _paymentLocalDataSource.getPaymentsByCustomerId(
-      widget.customer.id,
-    );
-
-    if (!mounted) return;
-
-    setState(() {
-      _invoices = invoices;
-      _payments = payments;
-      _isLoading = false;
-    });
-  }
-
-  double get _totalInvoiced {
-    return _invoices.fold<double>(
-      0,
-      (sum, invoice) => sum + invoice.totalAmount,
-    );
-  }
-
-  double get _totalPaid {
-    return _payments.fold<double>(0, (sum, payment) => sum + payment.amount);
-  }
-
-  double get _outstanding {
-    final value = _totalInvoiced - _totalPaid;
-    return value < 0 ? 0 : value;
-  }
-
-  List<_LedgerEntry> get _ledgerEntries {
-    final entries = <_LedgerEntry>[
-      ..._invoices.map((invoice) => _LedgerEntry.invoice(invoice)),
-      ..._payments.map((payment) => _LedgerEntry.payment(payment)),
-    ];
-
-    entries.sort((a, b) => b.date.compareTo(a.date));
-    return entries;
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final palette = Theme.of(context).brightness == Brightness.dark
         ? AppColors.dark
         : AppColors.light;
@@ -93,75 +30,117 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
       buttonText: palette.textOnPrimary,
     );
 
+    final invoicesAsync = ref.watch(invoicesProvider);
+    final paymentsAsync = ref.watch(paymentsProvider);
+
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: AppBar(title: const Text('Customer Details')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadData,
-              child: ListView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.customerDetailsTitle),
+      ),
+      body: invoicesAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (allInvoices) {
+          final customerInvoices = allInvoices.where((i) => i.customerId == customer.id).toList();
+          
+          return paymentsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
+            data: (allPayments) {
+              final customerPayments = allPayments.where((p) => p.customerId == customer.id).toList();
+
+              final totalInvoiced = customerInvoices.fold<double>(0, (sum, i) => sum + i.totalAmount);
+              final totalPaid = customerPayments.fold<double>(0, (sum, p) => sum + p.amount);
+              final outstanding = totalInvoiced - totalPaid;
+              
+              final ledgerEntries = _getLedgerEntries(customerInvoices, customerPayments, AppLocalizations.of(context)!);
+
+              return ListView(
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: [
                   _CustomerHeaderCard(
-                    customerName: widget.customer.name,
-                    phone: widget.customer.phone,
+                    customerName: customer.name,
+                    phone: customer.phone,
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  Text('Overview', style: textStyles.title3),
+                  Text(
+                    AppLocalizations.of(context)!.customerOverview,
+                    style: textStyles.title3,
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     children: [
                       Expanded(
                         child: _SummaryCard(
-                          title: 'Invoiced',
-                          value: '\$${_totalInvoiced.toStringAsFixed(2)}',
+                          title: AppLocalizations.of(context)!.customerStatsInvoiced,
+                          value: '\$${totalInvoiced.toStringAsFixed(2)}',
                         ),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: _SummaryCard(
-                          title: 'Paid',
-                          value: '\$${_totalPaid.toStringAsFixed(2)}',
+                          title: AppLocalizations.of(context)!.customerStatsPaid,
+                          value: '\$${totalPaid.toStringAsFixed(2)}',
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _SummaryCard(
-                    title: 'Outstanding',
-                    value: '\$${_outstanding.toStringAsFixed(2)}',
+                    title: AppLocalizations.of(context)!.customerStatsOutstanding,
+                    value: '\$${(outstanding < 0 ? 0 : outstanding).toStringAsFixed(2)}',
                     fullWidth: true,
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  Text('Ledger', style: textStyles.title3),
+                  Text(
+                    AppLocalizations.of(context)!.customerLedger,
+                    style: textStyles.title3,
+                  ),
                   const SizedBox(height: AppSpacing.md),
-                  if (_ledgerEntries.isEmpty)
-                    const _EmptyCard(
-                      message: 'No activity for this customer yet',
+                  if (ledgerEntries.isEmpty)
+                    _EmptyCard(
+                      message: AppLocalizations.of(context)!.customerNoActivity,
                     )
                   else
                     ...List.generate(
-                      _ledgerEntries.length,
-                      (index) => Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index == _ledgerEntries.length - 1
-                              ? 0
-                              : AppSpacing.md,
-                        ),
-                        child: _LedgerTimelineTile(
-                          entry: _ledgerEntries[index],
-                          isLast: index == _ledgerEntries.length - 1,
-                        ),
-                      ),
+                      ledgerEntries.length,
+                      (index) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: index == ledgerEntries.length - 1
+                                ? 0
+                                : AppSpacing.md,
+                          ),
+                          child: _LedgerTimelineTile(
+                            entry: ledgerEntries[index],
+                            isLast: index == ledgerEntries.length - 1,
+                          ),
+                        );
+                      },
                     ),
                 ],
-              ),
-            ),
+              );
+            },
+          );
+        },
+      ),
     );
+  }
+
+  List<_LedgerEntry> _getLedgerEntries(
+    List<InvoiceEntity> invoices,
+    List<PaymentEntity> payments,
+    AppLocalizations l10n,
+  ) {
+    final entries = <_LedgerEntry>[
+      ...invoices.map((invoice) => _LedgerEntry.invoice(invoice, l10n)),
+      ...payments.map((payment) => _LedgerEntry.payment(payment, l10n)),
+    ];
+
+    entries.sort((a, b) => b.date.compareTo(a.date));
+    return entries;
   }
 }
 
@@ -182,7 +161,7 @@ class _LedgerEntry {
     required this.isPositive,
   });
 
-  factory _LedgerEntry.invoice(InvoiceModel invoice) {
+  factory _LedgerEntry.invoice(InvoiceEntity invoice, AppLocalizations l10n) {
     final ref = invoice.id.length >= 6
         ? invoice.id.substring(invoice.id.length - 6)
         : invoice.id;
@@ -190,37 +169,37 @@ class _LedgerEntry {
     return _LedgerEntry(
       type: 'invoice',
       date: invoice.createdAt,
-      title: 'Invoice #$ref created',
-      subtitle: 'Added to customer balance',
+      title: l10n.customerLedgerInvoiceCreated(ref),
+      subtitle: l10n.customerLedgerInvoiceDesc,
       amount: invoice.totalAmount,
       isPositive: true,
     );
   }
 
-  factory _LedgerEntry.payment(PaymentModel payment) {
+  factory _LedgerEntry.payment(PaymentEntity payment, AppLocalizations l10n) {
     return _LedgerEntry(
       type: 'payment',
       date: payment.paymentDate,
-      title: 'Payment received',
+      title: l10n.customerLedgerPaymentReceived,
       subtitle: payment.note.isEmpty
-          ? _formatMethod(payment.method)
-          : '${_formatMethod(payment.method)} • ${payment.note}',
+          ? _formatMethod(payment.method, l10n)
+          : '${_formatMethod(payment.method, l10n)} • ${payment.note}',
       amount: payment.amount,
       isPositive: false,
     );
   }
 
-  static String _formatMethod(String method) {
+  static String _formatMethod(String method, AppLocalizations l10n) {
     switch (method) {
       case 'bank_transfer':
-        return 'Bank Transfer';
+        return l10n.paymentMethodBankTransfer;
       case 'card':
-        return 'Card';
+        return l10n.paymentMethodCard;
       case 'cash':
-        return 'Cash';
+        return l10n.paymentMethodCash;
       case 'other':
       default:
-        return 'Other';
+        return l10n.paymentMethodOther;
     }
   }
 }

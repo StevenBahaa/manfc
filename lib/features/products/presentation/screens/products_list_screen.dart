@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manfc/app/widgets/app_empty_state.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -10,55 +11,36 @@ import '../../../../app/widgets/app_primary_button.dart';
 import '../../../../app/widgets/app_scaffold.dart';
 import '../../../../app/widgets/app_search_field.dart';
 import '../../../../app/widgets/app_stat_card.dart';
-import '../../data/datasources/product_local_datasource.dart';
 import '../../data/models/product_model.dart';
 import '../../domain/entities/product_entity.dart';
+import '../providers/product_providers.dart';
 import '../widgets/add_edit_product_dialog.dart';
 import '../widgets/delete_product_dialog.dart';
 import '../widgets/product_card.dart';
 import 'package:manfc/l10n/app_localizations.dart';
 
-class ProductsListScreen extends StatefulWidget {
+class ProductsListScreen extends ConsumerStatefulWidget {
   const ProductsListScreen({super.key});
 
   @override
-  State<ProductsListScreen> createState() => _ProductsListScreenState();
+  ConsumerState<ProductsListScreen> createState() => ProductsListScreenState();
 }
 
-class _ProductsListScreenState extends State<ProductsListScreen> {
+class ProductsListScreenState extends ConsumerState<ProductsListScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final ProductLocalDataSource _localDataSource = ProductLocalDataSource();
-
-  List<ProductEntity> _allProducts = [];
-  bool _isLoading = true;
   String _query = '';
 
-  List<ProductEntity> get _filteredProducts {
-    if (_query.trim().isEmpty) return _allProducts;
+  List<ProductEntity> _filterProducts(List<ProductEntity> products) {
+    if (_query.trim().isEmpty) return products;
 
     final q = _query.toLowerCase().trim();
-    return _allProducts
+    return products
         .where((product) => product.name.toLowerCase().contains(q))
         .toList();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadProducts();
-  }
-
-  Future<void> _loadProducts() async {
-    setState(() => _isLoading = true);
-
-    final products = await _localDataSource.getAllProducts();
-
-    if (!mounted) return;
-
-    setState(() {
-      _allProducts = products;
-      _isLoading = false;
-    });
+  void loadProducts() {
+    ref.invalidate(productsProvider);
   }
 
   void _onSearchChanged(String value) {
@@ -94,9 +76,9 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
 
     if (result == null) return;
 
-    await _localDataSource.insertProduct(ProductModel.fromEntity(result));
-
-    await _loadProducts();
+    final repository = ref.read(productRepositoryProvider);
+    await repository.saveProduct(ProductModel.fromEntity(result));
+    ref.invalidate(productsProvider);
 
     if (!mounted) return;
     _showMessage(l10n.productCreatedMessage(result.name));
@@ -111,9 +93,9 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
 
     if (updated == null) return;
 
-    await _localDataSource.updateProduct(ProductModel.fromEntity(updated));
-
-    await _loadProducts();
+    final repository = ref.read(productRepositoryProvider);
+    await repository.saveProduct(ProductModel.fromEntity(updated));
+    ref.invalidate(productsProvider);
 
     if (!mounted) return;
     _showMessage(l10n.productUpdatedMessage(updated.name));
@@ -128,12 +110,12 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
 
     if (confirmed != true) return;
 
-    await _localDataSource.deleteProduct(product.id);
-
-    await _loadProducts();
+    final repository = ref.read(productRepositoryProvider);
+    await repository.deleteProduct(product.id);
+    ref.invalidate(productsProvider);
 
     if (!mounted) return;
-    _showMessage(l10n.productUpdatedMessage(product.name));
+    _showMessage(l10n.productDeleted);
   }
 
   @override
@@ -156,113 +138,109 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
       buttonText: palette.textOnPrimary,
     );
 
-    final products = _filteredProducts;
-    final totalProducts = _allProducts.length;
-
-    final averagePrice = _allProducts.isEmpty
-        ? 0.0
-        : _allProducts.map((e) => e.price).reduce((a, b) => a + b) /
-              _allProducts.length;
+    final productsAsync = ref.watch(productsProvider);
 
     return AppScaffold(
       title: l10n.productsTitle,
       useLargeTitle: true,
-      trailing: IconButton(
-        onPressed: _loadProducts,
-        icon: Icon(CupertinoIcons.refresh, color: palette.iconPrimary),
-      ),
-      child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppSearchField(
-                    controller: _searchController,
-                    hintText: l10n.productsSearchHint,
-                    onChanged: _onSearchChanged,
-                    onClear: () {
-                      _searchController.clear();
-                      _onSearchChanged('');
+      child: productsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (allProducts) {
+          final products = _filterProducts(allProducts);
+
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppSearchField(
+                  controller: _searchController,
+                  hintText: l10n.productsSearchHint,
+                  onChanged: _onSearchChanged,
+                  onClear: () {
+                    _searchController.clear();
+                    _onSearchChanged('');
+                  },
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppStatCard(
+                        title: l10n.productsTotalProducts,
+                        value: '${allProducts.length}',
+                        subtitle: l10n.productsSavedLocally,
+                        icon: CupertinoIcons.cube_box_fill,
+                        tone: AppStatCardTone.blue,
+                        compact: true,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                AppPrimaryButton(
+                  text: l10n.productsAddProduct,
+                  prefixIcon: const Icon(CupertinoIcons.add),
+                  onPressed: _openAddProductDialog,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Row(
+                  children: [
+                    Text(l10n.productsAllProducts, style: textStyles.title3),
+                    const Spacer(),
+                    Text(
+                      l10n.productsItemCount(products.length),
+                      style: textStyles.footnote.copyWith(
+                        color: palette.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                if (products.isEmpty)
+                  AppEmptyState(
+                    icon: CupertinoIcons.cube_box,
+                    title: l10n.productsEmptyTitle,
+                    subtitle: l10n.productsEmptySubtitle,
+                    actionLabel: l10n.productsAddProduct,
+                    onActionTap: _openAddProductDialog,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.cardPadding,
+                      vertical: AppSpacing.xl,
+                    ),
+                  )
+                else
+                  GridView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: products.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: _gridCount(context),
+                      crossAxisSpacing: AppSpacing.md,
+                      mainAxisSpacing: AppSpacing.md,
+                      childAspectRatio: _gridChildAspectRatio(context),
+                    ),
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+
+                      return ProductCard(
+                        product: product,
+                        onTap: () {
+                          // existing product details navigation if you have it
+                        },
+                        onEdit: () => _openEditProductDialog(product),
+                        onDelete: () => _confirmDeleteProduct(product),
+                      );
                     },
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppStatCard(
-                          title: l10n.productsTotalProducts,
-                          value: '${products.length}',
-                          subtitle: l10n.productsSavedLocally,
-                          icon: CupertinoIcons.cube_box_fill,
-                          tone: AppStatCardTone.blue,
-                          compact: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  AppPrimaryButton(
-                    text: l10n.productsAddProduct,
-                    prefixIcon: const Icon(CupertinoIcons.add),
-                    onPressed: _openAddProductDialog,
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Row(
-                    children: [
-                      Text(l10n.productsAllProducts, style: textStyles.title3),
-                      const Spacer(),
-                      Text(
-                        l10n.productsItemCount(products.length),
-                        style: textStyles.footnote.copyWith(
-                          color: palette.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  if (products.isEmpty)
-                    AppEmptyState(
-                      icon: CupertinoIcons.cube_box,
-                      title: l10n.productsEmptyTitle,
-                      subtitle: l10n.productsEmptySubtitle,
-                      actionLabel: l10n.productsAddProduct,
-                      onActionTap: _openAddProductDialog,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.cardPadding,
-                        vertical: AppSpacing.xl,
-                      ),
-                    )
-                  else
-                    GridView.builder(
-                      padding: EdgeInsets.zero,
-                      itemCount: products.length,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: _gridCount(context),
-                        crossAxisSpacing: AppSpacing.md,
-                        mainAxisSpacing: AppSpacing.md,
-                        childAspectRatio: _gridChildAspectRatio(context),
-                      ),
-                      itemBuilder: (context, index) {
-                        final product = products[index];
-
-                        return ProductCard(
-                          product: product,
-                          onTap: () {
-                            // existing product details navigation if you have it
-                          },
-                          onEdit: () => _openEditProductDialog(product),
-                          onDelete: () => _confirmDeleteProduct(product),
-                        );
-                      },
-                    ),
-                  const SizedBox(height: AppSpacing.xl),
-                ],
-              ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
             ),
+          );
+        },
+      ),
     );
   }
 }

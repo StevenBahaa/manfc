@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import 'package:manfc/l10n/app_localizations.dart';
 
 class DeleteCustomerDialog extends StatelessWidget {
   final String customerName;
@@ -25,19 +26,19 @@ class DeleteCustomerDialog extends StatelessWidget {
       backgroundColor: palette.surface,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text('Delete Customer', style: textStyles.title3),
+      title: Text(AppLocalizations.of(context)!.deleteCustomerTitle, style: textStyles.title3),
       content: Text(
-        'Are you sure you want to delete "$customerName"? This action cannot be undone.',
+        AppLocalizations.of(context)!.deleteCustomerMessage(customerName),
         style: textStyles.body.copyWith(color: palette.textSecondary),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.commonCancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text('Delete', style: TextStyle(color: palette.danger)),
+          child: Text(AppLocalizations.of(context)!.commonDelete, style: TextStyle(color: palette.danger)),
         ),
       ],
     );

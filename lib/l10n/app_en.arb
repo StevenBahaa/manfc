@@ -110,9 +110,185 @@
     },
   
     "commonCancel": "Cancel",
+    "commonCurrency": "$",
+    "commonHome": "Home",
     "commonDelete": "Delete",
     "commonEdit": "Edit",
   
-    "productFixedPrice": "Fixed price"
-  
+    "productFixedPrice": "Fixed price",
+
+    "customersAllCustomers": "All Customers",
+    "customersSearchHint": "Search customers",
+    "customerDetailsTitle": "Customer Details",
+    "customerOverview": "Overview",
+    "customerLedger": "Ledger",
+    "customerNoActivity": "No activity for this customer yet",
+    "customerNameLabel": "Customer Name",
+    "customerNameHint": "Enter customer name",
+    "customerPhoneLabel": "Phone Number",
+    "customerPhoneHint": "Enter phone number",
+    "deleteCustomerTitle": "Delete Customer",
+    "deleteCustomerMessage": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+    "@deleteCustomerMessage": {
+      "placeholders": {
+        "name": {}
+      }
+    },
+    "invoicesAllInvoices": "All Invoices",
+    "invoicesSearchHint": "Search invoices",
+    "invoiceUpdatedMessage": "Invoice updated",
+    "invoiceItemsTitle": "Invoice Items",
+    "invoiceGrandTotal": "Grand Total",
+    "invoicePaymentHistory": "Payment History",
+    "invoiceFormItems": "Items",
+    "invoiceFormAddItem": "Add Item",
+    "invoiceFormTotal": "Invoice Total",
+    "invoiceFormCustomer": "Customer",
+    "invoiceFormProduct": "Product",
+    "invoiceFormQuantity": "Quantity",
+    
+    "paymentAddTitle": "Add Payment",
+    "paymentMethodCash": "Cash",
+    "paymentMethodBankTransfer": "Bank Transfer",
+    "paymentMethodCard": "Card",
+    "paymentMethodOther": "Other",
+    "paymentAmountLabel": "Amount",
+    "paymentAmountHint": "0.00",
+    "paymentMethodLabel": "Payment Method",
+    "paymentNoteLabel": "Note",
+    "paymentNoteHint": "Optional note",
+    "paymentDateLabel": "Payment Date",
+    
+    "invoiceDateLabel": "Invoice Date",
+
+    "settingsTitle": "Settings",
+    "settingsSubtitle": "Customize your app appearance and language",
+    "settingsAppearance": "Appearance",
+    "settingsLightMode": "Light",
+    "settingsLightModeDesc": "Always use light mode",
+    "settingsDarkMode": "Dark",
+    "settingsDarkModeDesc": "Always use dark mode",
+    "settingsSystemMode": "System",
+    "settingsSystemModeDesc": "Follow device settings",
+    "settingsLanguage": "Language",
+    "settingsLanguageEnglish": "English",
+    "settingsLanguageEnglishDesc": "App language in English",
+    "settingsLanguageArabic": "العربية",
+    "settingsLanguageArabicDesc": "لغة التطبيق بالعربية",
+
+    "appTitle": "Factory Sales App",
+
+    "commonSearch": "Search",
+    "commonTotal": "Total",
+    "commonPaid": "Paid",
+    "commonRemaining": "Remaining",
+    "commonQuantity": "Quantity",
+    "commonUnitPrice": "Unit Price",
+    "commonStatus": "Status",
+    "commonCustomer": "Customer",
+    "commonDate": "Date",
+    "commonNoNote": "No note",
+
+    "productDeleted": "Product deleted",
+    "errorProductNameRequired": "Product name is required",
+    "errorProductNameShort": "Product name is too short",
+    "errorProductPriceRequired": "Price is required",
+    "errorProductPriceInvalid": "Enter a valid price",
+    "errorProductPriceZero": "Price must be greater than 0",
+
+    "errorInvalidAmount": "Enter a valid payment amount",
+    "errorAmountExceedsRemaining": "Payment cannot be greater than remaining amount",
+    "savePaymentBtn": "Save Payment",
+
+    "invoicesTotalTitle": "Total Invoices",
+    "invoicesTotalSubtitle": "Saved locally",
+    "invoicesRevenueTitle": "Total Revenue",
+    "invoicesRevenueSubtitle": "All invoices total",
+    "invoicesCreateBtn": "Create Invoice",
+    "invoicesVisibleTitle": "Visible Invoices",
+    "invoicesOutstandingTitle": "Outstanding",
+    "invoicesEmptyTitle": "No invoices found",
+    "errorSelectCustomer": "Please select a customer",
+    "errorAddInvoiceItem": "Add at least one valid invoice item",
+    "invoiceDetailsTitle": "Invoice Details",
+    "invoiceAddPaymentBtn": "Add Payment",
+    "invoiceItemsCount": "Items Count",
+    "invoiceLineTotal": "Line Total",
+    "errorCreateCustomerFirst": "Please create at least one customer first",
+    "errorCreateProductFirst": "Please create at least one product first",
+    "invoiceCreatedMessage": "Invoice created",
+    "invoiceDeletedMessage": "Invoice deleted",
+
+    "customersTotalTitle": "Total Customers",
+    "customersTotalSubtitle": "Saved locally",
+    "customersSearchableTitle": "Searchable",
+    "customersSearchableSubtitle": "Name and phone",
+    "customersAddBtn": "Add Customer",
+    "customersEmptyTitle": "No customers yet",
+    "customerStatsInvoiced": "Invoiced",
+    "customerStatsPaid": "Paid",
+    "customerStatsOutstanding": "Outstanding",
+    "customerLedgerInvoiceCreated": "Invoice #{ref} created",
+    "@customerLedgerInvoiceCreated": {
+      "placeholders": {
+        "ref": {
+          "type": "String"
+        }
+      }
+    },
+    "customerLedgerInvoiceDesc": "Added to customer balance",
+    "customerLedgerPaymentReceived": "Payment received",
+    "customerDeletedMessage": "Customer deleted",
+    "customerSavedMessage": "Customer saved",
+
+    "invoicesEmptySubtitleNew": "Create your first invoice to start tracking sales and payments.",
+    "invoicesEmptySubtitleSearch": "No invoices match the current search or selected filters.",
+    "invoiceFilterAll": "All",
+    "invoiceFilterOutstanding": "Outstanding",
+    "invoiceFilterPaid": "Paid",
+    "invoiceFilterCancelled": "Cancelled",
+    "customersEmptySubtitle": "Add your first customer to start creating invoices and tracking balances.",
+    "commonItemsCount": "{count} items",
+    "@commonItemsCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "commonSaveChanges": "Save Changes",
+    "invoiceEditTitle": "Edit Invoice",
+    "productCreateTitle": "Create Product",
+    "productEditTitle": "Edit Product",
+    "invoiceRefTitle": "Invoice #{ref}",
+    "@invoiceRefTitle": {
+      "placeholders": {
+        "ref": {
+          "type": "String"
+        }
+      }
+    },
+    "invoiceNoPaymentsYet": "No payments yet",
+    "customerEditTitle": "Edit Customer",
+    "customerCreateTitle": "Create Customer",
+    "customerAddDesc": "Enter the customer details below.",
+    "errorCustomerNameRequired": "Customer name is required",
+    "errorCustomerNameShort": "Customer name is too short",
+    "errorCustomerPhoneRequired": "Phone number is required",
+    "errorCustomerPhoneInvalid": "Enter a valid phone number",
+    "statusDraft": "Draft",
+    "statusUnpaid": "Unpaid",
+    "statusPartiallyPaid": "Partially Paid",
+    "statusPaid": "Paid",
+    "statusCancelled": "Cancelled",
+    "statusUnknown": "Unknown",
+    "deleteInvoiceTitle": "Delete Invoice",
+    "deleteInvoiceMessage": "Are you sure you want to delete invoice #{ref}? This action cannot be undone.",
+    "@deleteInvoiceMessage": {
+      "placeholders": {
+        "ref": {
+          "type": "String"
+        }
+      }
+    }
 }

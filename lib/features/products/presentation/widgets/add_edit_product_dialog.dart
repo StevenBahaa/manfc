@@ -48,23 +48,20 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   }
 
   String? _validateName(String? value) {
+    final l10n = AppLocalizations.of(context)!;
     final text = value?.trim() ?? '';
-
-    if (text.isEmpty) return 'Product name is required';
-    if (text.length < 2) return 'Product name is too short';
-
+    if (text.isEmpty) return l10n.errorProductNameRequired;
+    if (text.length < 2) return l10n.errorProductNameShort;
     return null;
   }
 
   String? _validatePrice(String? value) {
+    final l10n = AppLocalizations.of(context)!;
     final text = value?.trim() ?? '';
-
-    if (text.isEmpty) return 'Price is required';
-
+    if (text.isEmpty) return l10n.errorProductPriceRequired;
     final parsed = double.tryParse(text);
-    if (parsed == null) return 'Enter a valid price';
-    if (parsed <= 0) return 'Price must be greater than 0';
-
+    if (parsed == null) return l10n.errorProductPriceInvalid;
+    if (parsed <= 0) return l10n.errorProductPriceZero;
     return null;
   }
 
@@ -157,9 +154,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                   textInputAction: TextInputAction.next,
                   validator: _validateName,
                   style: textStyles.body,
-                  decoration: const InputDecoration(
-                    labelText: 'Product Name',
-                    hintText: 'Enter product name',
+                  decoration: InputDecoration(
+                    labelText: l10n.productNameLabel,
+                    hintText: l10n.productNameHint,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -172,15 +169,15 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                   validator: _validatePrice,
                   onFieldSubmitted: (_) => _save(),
                   style: textStyles.body,
-                  decoration: const InputDecoration(
-                    labelText: 'Price',
-                    hintText: 'Enter fixed price',
+                  decoration: InputDecoration(
+                    labelText: l10n.productPriceLabel,
+                    hintText: l10n.productPriceHint,
                     prefixText: '\$ ',
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 AppPrimaryButton(
-                  text: widget.isEditMode ? 'Save Changes' : 'Create Product',
+                  text: widget.isEditMode ? l10n.commonSaveChanges : l10n.productCreateTitle,
                   isLoading: _isSaving,
                   prefixIcon: Icon(
                     widget.isEditMode
